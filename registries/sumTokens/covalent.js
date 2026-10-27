@@ -42,12 +42,17 @@ module.exports = {
     },
   },
   "arbitrum": {
+    "methodology": "Counts ETH held by the Arbitrum One Bridge and every ERC-20 held by the L1 gateway escrows registered in the L1GatewayRouter: the standard ERC20 gateway, the generic custom gateway, and the token-specific custom-gateway escrows (Sky, Lido wstETH, Graph, Livepeer). Token lists are auto-discovered per escrow.",
+    "start": "2021-05-28",
     "ethereum": {
       "owners": [
         "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
         "0x8315177aB297bA92A06054cE80a67Ed4DBd7ed3a",
         "0xcEe284F754E854890e311e3280b767F80797180d",
-        "0xA10c7CE4b876998858b1a9E12b10092229539400"
+        "0xA10c7CE4b876998858b1a9E12b10092229539400", // Sky L1 escrow (DAI + USDS/sUSDS gateways)
+        "0x0F25c1DC2a9922304f2eac71DCa9B07E310e8E5a", // Lido wstETH L1 gateway (self-custodies)
+        "0x36aFF7001294daE4C2ED4fDEfC478a00De77F090", // Graph GRT escrow (L1GraphTokenGateway.escrow())
+        "0x6A23F4940BD5BA117Da261f98aae51A8BFfa210A"  // Livepeer LPT escrow (L1LPTGateway.l1LPTEscrow())
       ],
       "fetchCoValentTokens": true,
       "permitFailure": true
@@ -68,10 +73,13 @@ module.exports = {
     },
   },
   "base": {
+    "methodology": "Counts assets escrowed on Ethereum for Base's canonical bridge: ETH in the OptimismPortal, ERC-20s in the L1StandardBridge, and the custom Lido wstETH and Sky USDS/sUSDS escrows.",
     "ethereum": {
       "owners": [
         "0x3154Cf16ccdb4C6d922629664174b904d80F2C35",
-        "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e"
+        "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e",
+        "0x9de443AdC5A411E83F1878Ef24C3F52C61571e72", // Lido wstETH L1 bridge/escrow for Base
+        "0x7F311a4D48377030bD810395f4CCfC03bdbe9Ef3"  // Sky SkyLink BASE_ESCROW (USDS, sUSDS)
       ],
       "fetchCoValentTokens": true
     },
@@ -259,7 +267,7 @@ module.exports = {
     "flare": {
       "tokensAndOwners": [
         [
-          "0x12e605bc104e93B45e1aD99F9e555f659051c2BB",
+          ADDRESSES.flare.sFLR,
           "0x19831cfB53A0dbeAD9866C43557C1D48DfF76567"
         ],
         [
@@ -292,17 +300,6 @@ module.exports = {
       "owner": "0xd7e4b67e735733ac98a88f13d087d8aac670e644",
       "fetchCoValentTokens": true,
       "permitFailure": true
-    },
-  },
-  "ekubo-evm": {
-    "ethereum": {
-      "owners": [
-        "0xe0e0e08a6a4b9dc7bd67bcb7aade5cf48157d444"
-      ],
-      "fetchCoValentTokens": true,
-      "tokenConfig": {
-        "onlyWhitelisted": false
-      }
     },
   },
   "enibridge": {
@@ -420,18 +417,6 @@ module.exports = {
       ]
     },
   },
-  "hemi-locked": {
-    "ethereum": {
-      "owners": [
-        "0x5eaa10F99e7e6D177eF9F74E519E319aa49f191e",
-        "0x39a0005415256B9863aFE2d55Edcf75ECc3A4D7e"
-      ],
-      "fetchCoValentTokens": true,
-      "blacklistedTokens": [
-        "0xeb964a1a6fab73b8c72a0d15c7337fa4804f484d"
-      ]
-    },
-  },
   "immutable-zkevm": {
     "ethereum": {
       "owner": "0xBa5E35E26Ae59c7aea6F029B68c6460De2d13eB6",
@@ -532,12 +517,6 @@ module.exports = {
       "fetchCoValentTokens": true
     },
   },
-  "metisBridge": {
-    "ethereum": {
-      "owner": "0x3980c9ed79d2c191A89E02Fa3529C60eD6e9c04b",
-      "fetchCoValentTokens": true
-    },
-  },
   "mint-chain": {
     "ethereum": {
       "owners": [
@@ -598,6 +577,54 @@ module.exports = {
         "0x1B33B8499EB6D681CDcF19c79dF8A3Dec9c652C3"
       ],
       "fetchCoValentTokens": true
+    },
+  },
+  "omni-bridge": {
+    // https://github.com/Near-One/omni-bridge
+    "timetravel": false,
+    "methodology": "Tokens locked in the Omni Bridge locker contracts: ERC20/native tokens in the lockers on Ethereum, Base and Arbitrum, SPL vaults on Solana, and NEAR-native tokens locked in omni.bridge.near. Bridged representations (omft/factory.bridge.near mints) are excluded to avoid double counting.",
+    "ethereum": {
+      "owner": "0xe00c629aFaCCb0510995A2B95560E446A24c85B9",
+      "tokens": [ADDRESSES.null],
+      "fetchCoValentTokens": true
+    },
+    "base": {
+      "owner": "0xd025b38762B4A4E36F0Cde483b86CB13ea00D989",
+      "tokens": [ADDRESSES.null],
+      "fetchCoValentTokens": true
+    },
+    "arbitrum": {
+      "owner": "0xd025b38762B4A4E36F0Cde483b86CB13ea00D989",
+      "tokens": [ADDRESSES.null],
+      "fetchCoValentTokens": true
+    },
+    "polygon": {
+      "owner": "0xd025b38762B4A4E36F0Cde483b86CB13ea00D989",
+      "tokens": [ADDRESSES.null],
+      "fetchCoValentTokens": true
+    },
+    "bsc": {
+      "owner": "0x073C8a225c8Cf9d3f9157F5C1a1DbE02407f5720",
+      "tokens": [ADDRESSES.null],
+      "fetchCoValentTokens": true
+    },
+    "solana": {
+      // token vaults are owned by the bridge program's "authority" PDA, native SOL sits in the "sol_vault" PDA
+      "owners": ["FvULawNPGBbuwYus74ECaQoV1oH9Tk6XPN7VPN51NYds"],
+      "solOwners": ["6tckHFBpiJ8YgYN8FUskvtvTpXQZ55g5LHeo1kvELoDQ"]
+    },
+    "near": {
+      "owners": ["omni.bridge.near"],
+      "tokens": [
+        "wrap.near",
+        "edge-fast.near",
+        "token.0xshitzu.near",
+        "token.publicailab.near",
+        "cfi.consumer-fi.near",
+        "token.rhealab.near",
+        "jlu-1018.meme-cooking.near",
+        "purge-558.meme-cooking.near"
+      ]
     },
   },
   "orderly": {
@@ -669,13 +696,6 @@ module.exports = {
     "ethereum": {
       "owner": "0x2a3DD3EB832aF982ec71669E178424b10Dca2EDe",
       "fetchCoValentTokens": true
-    },
-  },
-  "pulsechain": {
-    "ethereum": {
-      "owner": "0x1715a3E4A142d8b698131108995174F37aEBA10D",
-      "fetchCoValentTokens": true,
-      "permitFailure": true
     },
   },
   "pulsechain-bridge": {
@@ -1014,7 +1034,8 @@ module.exports = {
         "0x944644Ea989Ec64c2Ab9eF341D383cEf586A5777",
         "0x674bdf20A0F284D710BC40872100128e2d66Bd3f"
       ],
-      "fetchCoValentTokens": true
+      "fetchCoValentTokens": true,
+      "permitFailure": true
     },
     "taiko": {
       "owners": ["0x3e71a41325e1d6B450307b6535EC48627ac4DaCC"],
@@ -1098,5 +1119,59 @@ module.exports = {
       "tvl": { "owners": ["0x13A145D215182924c89F2aBc7D358DCc72F8F788"], "fetchCoValentTokens": true, "blacklistedTokens": ["0x0202Be363B8a4820f3F4DE7FaF5224fF05943AB1", "0x5b4cf2c120a9702225814e18543ee658c5f8631e"] },
       "staking": { "__staking": ["0x13A145D215182924c89F2aBc7D358DCc72F8F788", "0x2645d5f59D952ef2317C8e0AaA5A61c392cCd44d"] }
     }
+  },
+  "pwn": {
+    "misrepresentedTokens": true,
+    "methodology": "Sums up all the tokens deposited in the PWN Protocol. NFTs are resolved to their floor price using Chainlink price feeds. Note that NFTs are resolved only on Ethereum.",
+    "ethereum": {
+      "owners": ["0x45DB28b2d4878Ad124c037d4558AcF5Db3bBa6A5", "0xb98eFE56deCCeb1BeC9fAEeAF62500deb0953474", "0x19e3293196aee99BB3080f28B9D3b4ea7F232b8d", "0x50160ff9c19fbE2B5643449e1A321cAc15af2b2C", "0x57c88D78f6D08b5c88b4A3b7BbB0C1AA34c3280A", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "resolveNFTs": true,
+      "resolveArtBlocks": true
+    },
+    "polygon": {
+      "owners": ["0xaF0d978275a2e7e3109F8C6307Ffd281774C623E", "0xe52405604bF644349f57b36Ca6E85cf095faB8dA", "0x50160ff9c19fbE2B5643449e1A321cAc15af2b2C", "0x57c88D78f6D08b5c88b4A3b7BbB0C1AA34c3280A", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true
+    },
+    "cronos": {
+      "owners": ["0x973E09e96E64E4bf17e383a8A497Fb566284c707", "0x4188C513fd94B0458715287570c832d9560bc08a", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true,
+      "tokenConfig": { "ignoreMissingChain": true }
+    },
+    "base": {
+      "owners": ["0x6fD3f5439aB1C103599385929d5f4c19acdBd264", "0x4188C513fd94B0458715287570c832d9560bc08a", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true
+    },
+    "arbitrum": {
+      "owners": ["0x448E3D0a4BAa00FE511a03E7B27177AeDE6d9636", "0x57c88D78f6D08b5c88b4A3b7BbB0C1AA34c3280A", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true
+    },
+    "optimism": {
+      "owners": ["0x43Ffd9dF079451Fe7D16Ac2c51E13DF2a173B71E", "0x4188C513fd94B0458715287570c832d9560bc08a", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true
+    },
+    "bsc": {
+      "owners": ["0x4A75a527E97d853109aA6998a2B9E45a87A31e9f", "0x57c88D78f6D08b5c88b4A3b7BbB0C1AA34c3280A", "0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797"],
+      "fetchCoValentTokens": true
+    },
+    "linea": {
+      "owners": ["0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797", "0xbe13866797bbdE2646FFBb58F102FcA91EFC88F1"],
+      "fetchCoValentTokens": true
+    },
+    "xdai": {
+      "owners": ["0x9A93AE395F09C6F350E3306aec592763c517072e", "0x0773d5F2f7b3264a9Eb285F085aCCcC53d5aAa4F", "0x719A69d0dc67bd3Aa7648D4694081B3c87952797", "0x431131622e088Fb0F9828Ca05b62210fc9eDcC04"],
+      "fetchCoValentTokens": true
+    },
+    "unichain": {
+      "owners": ["0x322e86E6c813d77a904C5B4aa808a13E0AD4412f", "0x354869495Fd916ADAFc0626C3d60115240dc06f1"],
+      "fetchCoValentTokens": true,
+      permitFailure: true,
+      "tokenConfig": { "ignoreMissingChain": true }
+    },
+    "wc": {
+      "owners": ["0x719A69d0dc67bd3Aa7648D4694081B3c87952797", "0xc0aCA216Aa936511b24Ff238F610B02bE54e10AD"],
+      "fetchCoValentTokens": true,
+      "tokenConfig": { "ignoreMissingChain": true }
+    },
+    "mantle": { "tvl": { "__empty": true } }
   },
 }

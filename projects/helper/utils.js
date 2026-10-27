@@ -7,11 +7,11 @@ const erc20 = require('./abis/erc20.json');
 const { beacon } = require('./chain/rpcProxy');
 
 async function fetchURL(url) {
-  return axios.get(url)
+  return axios.get(url, { timeout: http.DEFAULT_TIMEOUT })
 }
 
 async function postURL(url, data) {
-  return axios.post(url, data)
+  return axios.post(url, data, { timeout: http.DEFAULT_TIMEOUT })
 }
 
 function createIncrementArray(length) {
@@ -69,6 +69,7 @@ function isLP(symbol, token, chain) {
   if (chain === 'harmony' && ['HLP'].includes(symbol)) return true
   if (chain === 'klaytn' && ['NLP'].includes(symbol)) return true
   if (chain === 'core' && ['GLP'].includes(symbol)) return true
+  if (chain === 'astar' && ['NLP'].includes(symbol)) return true
   if (chain === 'kardia' && ['KLP', 'KDXLP'].includes(symbol)) return true
   if (chain === 'fantom' && ['HLP', 'WLP'].includes(symbol)) return true
   if (chain === 'functionx' && ['FX-V2'].includes(symbol)) return true
@@ -89,6 +90,7 @@ function isLP(symbol, token, chain) {
   if (chain === 'btn' && /(XLT)$/.test(symbol)) return true //xenwave LP
   if (['fantom', 'nova',].includes(chain) && ['NLT'].includes(symbol)) return true
   if (chain === 'ethereumclassic' && symbol === 'ETCMC-V2') return true
+  if (chain === 'etica' && symbol === 'ETICA-V2') return true // EticaSwap LP
   if (chain === 'shibarium' && ['SSLP', 'ChewyLP'].includes(symbol)) return true
   if (chain === 'omax' && ['OSWAP-V2'].includes(symbol)) return true
   if (chain === 'sonic' && symbol.endsWith(' spLP')) return true

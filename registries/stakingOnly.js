@@ -14,6 +14,90 @@ const configs = {
   // Simple staking/pool2-only adapters
   // ============================================================
 
+  'smartcoin': {
+    methodology: "TVL calculation currently includes Pool2 TVL in the SMRT-AVAX JLP",
+    avax: {
+      pool2: ['0xa0488F956D7fe05b1798e9FaF0cE5F1133d23822', '0xf070843Ba9ed0ab85B0d15f9E8D67A5A8E073254', null],
+    },
+  },
+  'seedify': {
+    bsc: {
+      pool2: ['0x1F10564BAD9367CfF4247A138eBbA9a9aaeb789E', '0x74fa517715c4ec65ef01d55ad5335f90dce7cc87'],
+      staking: [['0xb667c499b88AC66899E54e27Ad830d423d9Fba69', '0x027fC3A49383D0E7Bd6b81ef6C7512aFD7d22a9e', '0x8900475BF7ed42eFcAcf9AE8CfC24Aa96098f776', '0x66b8c1f8DE0574e68366E8c4e47d0C8883A6Ad0b', '0x5745b7E077a76bE7Ba37208ff71d843347441576', '0xf420f0951f0f50f50c741f6269a4816985670054', '0x60b9f788f4436f0b5c33785b3499b2ee1d8dbfd4', '0x5b384955ac3460c996402bf03736624a33e55273', '0xd01650999bb5740f9bb41168401e9664b28ff47f', '0x89aaab217272c89da91825d9effbe65ded384859', '0x71d058369d39a8488d8e9f5fd5b050610ca788c0'], '0x477bC8d23c634C154061869478bce96BE6045D12'],
+    },
+    arbitrum: {
+      staking: [['0x1d22275d58a836f8307c306110deafe22e360877', '0xaae4355b30e18879a12e4e22283da901af47d6cd', '0x9f07a4cf035f14c0160db2d7d94eb5a41f114805', '0xc30be140f8ada0fdb0c97377c98ddbe8b343679a', '0xc30be140f8ada0fdb0c97377c98ddbe8b343679a'], '0x560363bda52bc6a44ca6c8c9b4a5fadbda32fa60'],
+    },
+    ethereum: {
+      staking: [['0x1d22275d58a836f8307c306110deafe22e360877', '0xbcc572d3f2f619b082794a96a848a23c2a752fcf', '0x453bbf5ad5011a89390a1e96042a19d5f4892754', '0x569399bfca76e7664cec6510adc75f2811be2c5c', '0x92572249d487a99c0ed746ee36aaf22a66c4ab67'], '0x560363bda52bc6a44ca6c8c9b4a5fadbda32fa60'],
+    },
+  },
+  'rfox': {
+    methodology: "Counts Pools and Stakings on both Rfox and Vfox",
+    bsc: {
+      // RFOX staked across 3 contracts + VFOX staked across 4 contracts
+      staking: { __sumTokens: { tokensAndOwners: [
+        ['0x0a3a21356793b49154fd3bbe91cbc2a16c0457f5', '0x60a3bd6d8d42546a57aea8b8456f2330619b5acc'],
+        ['0x0a3a21356793b49154fd3bbe91cbc2a16c0457f5', '0x273dF269759A319cFbC052585A3eB45d67A8E67A'],
+        ['0x0a3a21356793b49154fd3bbe91cbc2a16c0457f5', '0xff0394014519a7334c8ffc886ea74cdd60229ec0'],
+        ['0x4d61577d8fd2208a0afb814ea089fdeae19ed202', '0x60a3bd6d8d42546a57aea8b8456f2330619b5acc'],
+        ['0x4d61577d8fd2208a0afb814ea089fdeae19ed202', '0xa494d1F0AbdA95F84600C195Bc6dd719e2F10fF0'],
+        ['0x4d61577d8fd2208a0afb814ea089fdeae19ed202', '0xebcc34134dc3107f0fb285629c041606cfa1f5be'],
+        ['0x4d61577d8fd2208a0afb814ea089fdeae19ed202', '0xD1841F1964b3Ac7ab4bDabF9C62720fA669A7040'],
+      ] } },
+      pool2: [
+        ['0x18153F9103cb4B6e1c2C89A0F87bA10baF992723', '0xCf1B259031b15aB8445719aF5143Ce8e9AF8148B', '0xfbd99f6417c28a120b52439a72e82e2aed73b114', '0x8c0c225a5b64997200b3195567b2e649f5ef8510'],
+        ['0x8647782fdda507C28bfd0614BF55200050F35dcD', '0x8e04b3972b5c25766c681dfd30a8a1cbf6dcc8c1'],
+        null,
+      ],
+    },
+  },
+  'onecash': {
+    misrepresentedTokens: true,
+    methodology: "Counts liquidty on the Staking and Pool2 Only",
+    ethereum: {
+      staking: [['0x6aCb13480D431C99e68794F038e00857DA8D1fF3', '0x8eeBDFc76a9f98d0b36b107A940ADAdBA8C8df27', '0xFD35C0e9706A669d7be9B2D9C69AE2927F1071dB', '0xd22C1549017Cf96eAA093ad47Da0CF62f42b0562', '0xC9aE03864271a8f18bEC0afD3c2dccF3D0700950'], '0x5bb29c33c4a3c29f56f8aca40b4db91d8a5fe2c5'],
+      pool2: [['0xC9aE03864271a8f18bEC0afD3c2dccF3D0700950', '0x11dAb122FA5ab4D407521Ae1CA416dEFF198b688', '0x78A05fDA97C8458F07e03583fdaf05Ff6ee4f6C9'], ['0x3Ba3C8fB0142A6f2bf3e2990A08957866203f961', '0x896dc58182C3B78598C11aa10F940257A1cE32b1'], null],
+    },
+  },
+  'nasdex': {
+    misrepresentedTokens: true,
+    methodology: "We count liquidity on the Stake Seccion through Staking (MasterChef) Contract",
+    polygon: {
+      staking: ['0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95', '0xE8d17b127BA8b9899a160D9a07b69bCa8E08bfc6'],
+      pool2: ['0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95', '0x56B8936a96cD5EE5C5837F385a19B4c2999fD74a'],
+    },
+  },
+  'mvl': {
+    methodology: "MVL Single Staking TVL is calculated by multiplying the locked MVL quantity by the MVL price that changes in real time. MVL LP Staking TVL is calculated by multiplying the locked LP quantity by the LP price that changes in real time.At this time, the LP price changes depending on the prices of ETH and MVL, and the prices of BNB and bMVL.",
+    ethereum: {
+      staking: [['0x92Ec27935cE7b523cc70C2fFaf0728F1Fa6425dF', '0x1BdFAa7aFAa454F491b5de40d24d681F0F3Adb1A', '0xB87A16fD301b3CFed03982D99840970328d185aD', '0x742AB08EEc9f940beF657394720090F163f535Cc'], '0xA849EaaE994fb86Afa73382e9Bd88c2B6b18Dc71'],
+      pool2: [['0x34fDA56b5c9Aa52DF9fa51b01666683b7b1434d6', '0xC0496C7B9D7150A81bD6fF1d015e95668BD4abeD', '0xf7EaeceBd69430b31E711df8BD9DD215a49B6d80'], ['0x3c8ad34155b83ddb7f43119a19503d34ed2b5c7a'], null],
+    },
+    bsc: {
+      staking: [['0x0A3AC95445F3e02cC80267f02B9669ed75b71043', '0x121E257f4A6fa763012eF0b6b6f68905F6D4b721', '0x5a54EC1e6DA36f19a806A9168fD4270fEf697354', '0x8CeB404D939c293ad070A5B33fc197df3aF1AbB7'], '0x5f588EfAf8eB57e3837486e834fC5a4E07768D98'],
+      pool2: [['0xC948622856a40Efd50d74BA6e3624FE7100A95Ef', '0xc81632E77Ea7262137EA815DC8BA7a47A5a01ab1', '0xDD71D03d70848F79a1C6df6eB0f6623236BBD85B'], ['0xE01eDA650632986B2E5B8167F629D7C7c759D4FD'], null],
+    },
+  },
+  'kommunitas': {
+    polygon: { staking: () => ({}) }, // old KOM token staking contract
+    arbitrum: { staking: () => ({}) }, // old KOM token staking contract
+    bsc: { staking: ['0x47fEAab70363fBE9eD3eb5E3037c18361FA7Bb74', '0x3cd886be588685484528cbf6494729922e4e89c6'] },
+  },
+  'csix': {
+    methodology: "Counts as TVL the CSIX deposited through Staking Contract",
+    hallmarks: [
+      ['2023-02-14', "Staking V1"],
+      ['2023-11-22', "Staking V2"],
+      ['2024-02-26', "Staking V3"],
+    ],
+    bsc: {
+      staking: {
+        owners: ['0xadc743298F6339Cd8ebC0Dc58D4E19C2065D6b4f', '0xA4f55D251b8fa8e0C291CC539F020c5Cbe4a9FA8', '0x7c7C76e4D47872A7B73FA15306A9Ebb673796dDc'],
+        tokens: ['0x04756126F044634C9a0f0E985e60c88a51ACC206'],
+      },
+    },
+  },
   '2omb-finance': {
     fantom: {
       staking: ['0x627A83B6f8743c89d58F17F994D3F7f69c32F461', '0xc54a1684fd1bef1f077a336e6be4bd9a3096a6ca'],
@@ -82,9 +166,9 @@ const configs = {
     }
   },
   'nara': {
-    methodology: 'TVL is the total NARA locked in NARAEngineV2. Users lock NARA for a chosen duration and earn NARA + ETH rewards every 15-minute epoch.',
+    methodology: 'Total NARA locked in NARAEngineV4 on Base. Users lock NARA for a chosen duration to participate in protocol consensus and earn rewards every 15-minute epoch.',
     base: {
-      staking: { owners: ['0x62250aEE40F37e2eb2cd300E5a429d7096C8868F'], tokens: ['0xE444de61752bD13D1D37Ee59c31ef4e489bd727C']}
+      staking: { owners: ['0x98ab6406D6B548F37dEF7110961bb45A399e5aFC'], tokens: ['0xB6333F5D4cEd8dffA80F3F13697D6aA3BB3f19c1']}
     }
   },
   'venice-protocol': {
@@ -93,9 +177,32 @@ const configs = {
       staking: ['0x321b7ff75154472B18EDb199033fF4D116F340Ff', '0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf'],
     },
   },
+  'orbio': {
+    methodology: 'Counts ORBIO tokens deposited in the Orbio staking contract on Robinhood Chain.',
+    robinhood: { staking: ['0xe0710011278bfb63e57c5f227e5980984b1eddca', '0xaa07a0e9209e16ac99708c3ec70159c6ef3128a3'] },
+  },
+  'capminal': {
+    methodology: 'Counts CAP held in the ScapStaking contract on Base, including staked and unbonding principal plus funded but unclaimed CAP rewards.',
+    start: '2026-05-30',
+    base: {
+      staking: ['0x92ee42A61CF55642949B4fE74bB4796978ddB47a', '0xbfa733702305280F066D470afDFA784fA70e2649'],
+    },
+  },
   'velhalla': {
     velas: {
       staking: ['0x7DeD7f9D3dF541190F666FB6897483e46D54e948', '0x8d9fb713587174ee97e91866050c383b5cee6209'],
+    },
+  },
+  'love': {
+    methodology: 'The liquidity on these three pools + the tokens staked on all three chains (PulseChain, Ethereum, and Binance Smart Chain)',
+    ethereum: {
+      staking: ['0xE639E9DC0E302f5dB025713009868c8adE4Ced26', '0xb55EE890426341FE45EE6dc788D2D93d25B59063'],
+    },
+    pulse: {
+      staking: ['0xDd91E607C919Db74e18C2845e4cfb22793c30b2f', '0xb55EE890426341FE45EE6dc788D2D93d25B59063'],
+    },
+    bsc: {
+      staking: ['0x1781e00780AfD93a03Bf5f9dED088a8578cE9B09', '0xb55EE890426341FE45EE6dc788D2D93d25B59063'],
     },
   },
   'xrune': {
@@ -1289,9 +1396,40 @@ const configs = {
   "paperhands": {
     "methodology": "TVL includes the total volume of PHANDS tokens locked in the official staking smart contract.",
     "ethereum": {
-      staking: [["0x0f4e761F2DcFD509eccd18004b89e329D25903B7"], "0x11157da1fc6dcfd58b50ed79082183b2c6176245"]
+      staking: [["0x0f4e761F2DcFD509eccd18004b89e329D25903B7", "0x62fe22a9b954bc84fc6a74d889324fb40d13dce4"], "0x11157da1fc6dcfd58b50ed79082183b2c6176245"]
     }
   },
+  "blazephoenix": {
+    "base": {
+      staking: [["0x3f60C7aa0c36a78D200405feBE143d2Cf3fA0c77"], "0x23113e72165a034265Ab8Bf2277CCB7a85Cb7483"]
+    }
+  },
+  "netnet": {
+    "methodology": "NET staked in the NetNet staking contract",
+    "start": "2026-07-16",
+    "robinhood": {
+      staking: ['0xB078cc304A0B264C5F3680DC0488954ACcd02E87', '0xCA9c78Dd337A67F6e0077F65F5E9218719d30eDf'],
+    },
+  },
+  "nukes-fun": {
+    "methodology": "NUKE staked in the NUKES.FUN staking contract",
+    "robinhood": {
+      staking: ['0x9c648D57E929F59B483b2903390725449F990Cb8', '0x0000000005aCa17e8bd5779Fc87E13cb433aEd24'],
+    },
+  },
+  "numerai": {
+    "methodology": "NMR staked on models in Numerai's tournament staking contracts (tournaments 8 and 12). NMR is Numerai's own token, so it is reported as staking.",
+    "start": "2026-07-29",
+    "ethereum": {
+      staking: [['0xe44c35ec2896983accce2a38dc1668793e85956d', '0xc1f46adf341145369eee9fbe0d84fa1cb0c24706'], '0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671'],
+    },
+  },
+  "quotum": {
+    "methodology": "Staking is QUOTUM principal deposited in QuotumStaking. The protocol's own token is excluded from ordinary TVL. TaxSink funds earmarked for inference payments and buybacks are excluded from TVL.",
+    "robinhood": {
+      staking: ["0x7F1d2b117aBac121f99cEED7f80e5925fFF37A53", "0xFE936755185353b63a81dD72b47533Eb6021018E"]
+    }
+  }
 }
 
 module.exports = buildProtocolExports(configs, stakingOnlyExportFn)

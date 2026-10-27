@@ -22,7 +22,10 @@ function compoundExportFn(chainConfigs) {
     } else {
       const compoundConfig = { ...config }
       for (const key of chainExportKeys) delete compoundConfig[key]
-      result[chain] = compoundExports2(compoundConfig)
+      // A chain may carry only staking/pool2 (no compound market): skip compoundExports2
+      // when there's no comptroller so buildProtocolExports can still attach its buckets.
+      if (compoundConfig.comptroller) result[chain] = compoundExports2(compoundConfig)
+      else result[chain] = { tvl: () => ({}) }
     }
   })
   return result
@@ -31,6 +34,11 @@ function compoundExportFn(chainConfigs) {
 const configs = {
   'bencu': {
     metis: { comptroller: '0xC5986Df018D1ff8ecA79fd3f266428616617cDF3' },
+  },
+  'aquarius-loan': {
+    // borrowed zeroed out due to bad debt (isInsolvent empties the borrowed bucket)
+    arbitrum: { comptroller: '0xf854c6b57e6d8ec3e790ec6da1a13060d19549d4', cether: '0x13f9a7f33550fe935bf7b544e536584d30ecf50a', isInsolvent: true },
+    core: { comptroller: '0x6056Eb6a5634468647B8cB892d3DaA5F816939FC', cether: '0x03ef96f537a7cda4411c8643afd9d8814d5b4906', isInsolvent: true, staking: ['0x959C7898318DC3c8fD11cbC5000f4e36F75144EC', '0x204e2D49b7cDA6d93301bcF667A2Da28Fb0e5780'] },
   },
   'rho-markets': {
     methodology,
@@ -52,28 +60,41 @@ const configs = {
       ],
     },
   },
-  'peridot': {
-    methodology: 'TVL is calculated by summing the underlying token balances of all markets in the Peridot lending protocol. Borrowed balances are also tracked separately.',
-    bsc: { comptroller: '0x6fC0c15531CB5901ac72aB3CFCd9dF6E99552e14' },
-    monad: { comptroller: '0x6D208789f0a978aF789A3C8Ba515749598940716', blacklistedMarkets: ['0xf8255935e62aa000c89de46a97d2f00bfff147e7'], cether: '0x2FB2861402A22244464435773dd1C6951735CdF7' },
-  },
+  // 'peridot' moved to projects/peridot/index.js: it also has non-Compound Soroban markets on Stellar
   'hover': {
     kava: { comptroller: '0x3A4Ec955a18eF6eB33025599505E7d404a4d59eC', cether: '0xb51eFaF2f7aFb8a2F5Be0b730281E414FB487636' },
   },
   'enzo': {
     btr: { cether: '0xe277Aed3fF3Eb9824EdC52Fe7703DF0c5ED8B313', comptroller: '0xe688a4a94AD1D32CD52A01306fc0a9552749F322', cetheEquivalent: ADDRESSES.btr.WBTC },
   },
+  'enclabs': {
+    // borrowed zeroed out due to bad debt -> isInsolvent empties the borrowed bucket
+    sonic: [
+      { comptroller: '0xccAdFCFaa71407707fb3dC93D7d83950171aA2c9', isInsolvent: true },
+      { comptroller: '0x1db5134ee31278809b2d85fab2796141dbe0d041', isInsolvent: true },
+      { comptroller: '0x62c627e08f996d7d7563e135e527f422fee34786', isInsolvent: true },
+      { comptroller: '0x26190C71c27e089533186338d16abB2ba9528969', isInsolvent: true },
+      { comptroller: '0x0c9425eCFbd64a96D306f36e8281EE5308446d31', isInsolvent: true },
+    ],
+    plasma: { comptroller: '0xA3F48548562A30A33257A752d396A20B4413E8E3', isInsolvent: true },
+  },
   'jax-protocol': {
     taiko: { comptroller: '0x8D86d4070b9432863FE9522B2c931C410085E1d4', cether: '0xdc1af71e6b9b4572cdf7832496efbea06cbecfc5' },
   },
   'capyfi': {
     lac: { comptroller: '0x123Abe3A273FDBCeC7fc0EBedc05AaeF4eE63060', cether: '0x465ebfceb3953e2922b686f2b4006173664d16ce' },
-    ethereum: { comptroller: '0x0b9af1fd73885aD52680A1aeAa7A3f17AC702afA', cether: '0x37DE57183491Fa9745d8Fa5DCd950f0c3a4645c9', blacklistedTokens: ['0xbaa6bc4e24686d710b9318b49b0bb16ec7c46bfa'] },
+    ethereum: { comptroller: '0x0b9af1fd73885aD52680A1aeAa7A3f17AC702afA', cether: '0x37DE57183491Fa9745d8Fa5DCd950f0c3a4645c9', blacklistedTokens: ['0xbaa6bc4e24686d710b9318b49b0bb16ec7c46bfa', '0xed025a9fe4b30bcd68460bca42583090c2266468'] },
     wc: { comptroller: '0x589d63300976759a0fc74ea6fA7D951f581252D7', cether: '0xaAd91abe333c4536FFbF02b83daBaB49C9Aa23ed' },
+    base: { comptroller: '0x00dc4965916e03A734190fA382633657c71f867E', cether: '0x654A9003Cb09ab8050D4Fdba12F4c5d3C60A548e' },
   },
   'elara': {
     methodology,
-    zircuit: { comptroller: '0x695aCEf58D1a10Cf13CBb4bbB2dfB7eDDd89B296' },
+    zircuit: {
+      comptroller: '0x695aCEf58D1a10Cf13CBb4bbB2dfB7eDDd89B296',
+      isInsolvent: true,
+      // comptroller reverts on getAllMarkets since mid-2026; market list read at a 2026-06-01 zircuit block
+      markets: ['0x790e0035e51a69d91f16d36ad6E712A6659dBD54', '0xF856D49909De7ffF9A525143BA37a4a999b4bd68', '0xEb369e81E6001dc4accA4B99AA20adC7899b4e6F', '0xd56dE7276370dC9c64C4E4334dad7293913d4755', '0x8b82479605460C89434D4e0107a7dF0DdcdE211F'],
+    },
   },
   'basic': {
     iotex: { cether: '0x83C51de03f03C5E23f02F674dbD2032e164112Fc', comptroller: '0x47D7B83947Aa12fEb95f5f55527Dc9B32E4ec009', cetheEquivalent: ADDRESSES.iotex.WIOTX },
@@ -113,6 +134,24 @@ const configs = {
   },
   'metalend': {
     ronin: { comptroller: '0x9E8FD99Fc64Cd2fF4B5846361a7eC457f2b3808e' },
+  },
+  'mantradao': {
+    ethereum: {
+      comptroller: '0x606246e9EF6C70DCb6CEE42136cd06D127E2B7C7',
+      cether: '0x4F905f75F5576228eD2D0EA508Fb0c32a0696090',
+      blacklistedTokens: ['0x3593d125a4f7849a1b059e64f4517a86dd60c95d'],
+      isInsolvent: true,
+      staking: { __sumTokens: { tokensAndOwners: [["0x3593D125a4f7849a1B059E64F4517A86Dd60c95d","0x9E15Ad979919bB4db331Bfe864475Ae3BFFebA93"],["0x3593D125a4f7849a1B059E64F4517A86Dd60c95d","0xa01892d97e9c8290c2c225fb0b756bfe26bc9802"],["0x3593D125a4f7849a1B059E64F4517A86Dd60c95d","0x04493F715B08DeA8af77814d600bEf22f1f0C63B"],["0x3593D125a4f7849a1B059E64F4517A86Dd60c95d","0x1eA973A69643091410721C7D91aA5499CF8D2Cb7"],["0xaf9f549774ecedbd0966c52f250acc548d3f36e5","0x456DF576962289256A92290C9E48EE116B8Cb413"],["0xdef1da03061ddd2a5ef6c59220c135dec623116d","0xdbc34d084393ed8d7b750FfCCea5A139EC7b9349"],["0x7eaF9C89037e4814DC0d9952Ac7F888C784548DB","0x4Cd4c0eEDb2bC21f4e280d0Fe4C45B17430F94A9"],["0x8a40c222996f9F3431f63Bf80244C36822060f12","0x6BcDC61A7A6d86f7b7B66d461b7eF7fa268571a0"],["0x4eed0fa8de12d5a86517f214c2f11586ba2ed88d","0x1dfdb0fb85402dc7f8d72d92ada8fbbb3ffc8633"],["0x5eaa69b29f99c84fe5de8200340b4e9b4ab38eac","0x2d0ea72db9f9a63f4b185eab1ca74137d808ebfa"],["0x67b6d479c7bb412c54e03dca8e1bc6740ce6b99c","0x6ae05b5db520011bf76645ebb4d6a697e5b3774b"],["0x8b0e42f366ba502d787bb134478adfae966c8798","0x6f0db359309CAD297D2e7952a4F5f081bDC1e373"],["0x8b0E42F366bA502d787BB134478aDfAE966C8798","0xb96e42c0de658ca26048b0e200f9a1e05ad89e0f"],["0xd2dda223b2617cb616c1580db421e4cfae6a8a85","0x39621A555554A7FF77F2b64185c53E04C90cD540"],["0x4eED0fa8dE12D5a86517f214C2f11586Ba2ED88D","0xa571309B1267676568Bf9f155606a08790896Fe2"],["0x93C9175E26F57d2888c7Df8B470C9eeA5C0b0A93","0xb19b94d53D362CDfC7360C951a85ca2c1d5400BA"]] } },
+      pool2: { __sumTokens: { tokensAndOwners: [["0x2d9fd51e896ff0352cb6d697d13d04c2cb85ca83","0x5f81a986611C600a3656d9adc202283186C6121D"],["0x2d9fd51e896ff0352cb6d697d13d04c2cb85ca83","0xfc8e3b55897d8cef791451bbe69b204b9c58fc8a"],["0xe46935ae80e05cdebd4a4008b6ccaa36d2845370","0x91fe14df53eae3a87e310ec6edcdd2d775e1a23f"],["0x6d9d2427cfa49e39b4667c4c3f627e56ae586f37","0x55e0F2cE66Fa8C86ef478fa47bA0bE978eFC2647"],["0x1f07f8e712659087914b96db4d6f6e4fee32285e","0xb12f0CbcC89457d44323139e6Bb0526Fd82f12F2"],["0x1f07f8e712659087914b96db4d6f6e4fee32285e","0x18Ba986ED3128fc7E3E86a09E902436e900a899c"],["0x2a182e532a379cb2c7f1b34ce3f76f3f7d3596f7","0x6406788d1CD4fdD823ef607A924c00a4244a841d"],["0x4fc47579ecf6aa76677ee142b6b75faf9eeafba8","0xe2a80A76B084B51CFAe5B2C3e0FF5232e0408201"],["0xc62bf2c79f34ff24e2f97982af4f064161ed8949","0xFF964d0bf9f81c401932A6B975EAE54129712eE5"]], resolveLP: true } },
+    },
+    bsc: {
+      staking: { __sumTokens: { tokensAndOwners: [["0x651cd665bd558175a956fb3d72206ea08eb3df5b","0x7dd79e93dba1d677574d0b5e99721f2e4b45e297"],["0x96058f8c3e16576d9bd68766f3836d9a33158f89","0x004c0908518e19aa8b27a55c171564097fa3c354"],["0x4518231a8fdf6ac553b9bbd51bbb86825b583263","0xF0185520Cc773502f0f208433ca178f2f57157A9"],["0xf78d2e7936f5fe18308a3b2951a93b6c4a41f5e2","0xEfc2d65302eb6345A7C0e212B791e0d45C2C3c91"],["0xf78d2e7936f5fe18308a3b2951a93b6c4a41f5e2","0x41A32C610FA23dEa9E85D471CAD66ea828853153"],["0xf78d2e7936f5fe18308a3b2951a93b6c4a41f5e2","0xEf2663d96e48a543D9EA96A39869aB54f7F5D872"]] } },
+      pool2: { __sumTokens: { tokensAndOwners: [["0xC309a6d2F1537922E06f15aA2eb21CaA1b2eEDb6","0xF25897a7EDf1Dfa9C65f5DB7Ec4Bad868873805B"],["0x49837a48abde7c525bdc86d9acba39f739cbe22c","0xcbf42ace1dbd895ffdcabc1b841488542626014d"],["0x0b49580278b403ca13055bf4d81b6b7aa85fd8b9","0x92fCe8AfFB2A68d418BaDF8E360E0CDe06c39356"],["0x538e61bd3258304e9970f4f2db37a217f60436e1","0x1E8BC897bf03ebac570Df7e5526561f8a42eCe05"],["0xb8b4383b49d451bbea63bc4421466e1086da6f18","0xD862866599CA681c492492E1B7B9aB80066f2FaC"],["0x5a26eb7c9c72140d01039eb172dcb8ec98d071bd","0x4F905f75F5576228eD2D0EA508Fb0c32a0696090"],["0x5548bd47293171d3bc1621edccd953bcc9b814cb","0x5B4463bBD7B2E870601e91161e0F1F7f84CDE214"],["0x560b96f81a2190ff6ac84ebfd17788bab3679cbc","0x398a5FEE22E0dEb67dA1bD15FA4841b6Aa64c471"],["0xB62c57Bda4C126E21A726e3D28734bfb1151231e","0x3ba3E2f3cACcDbE3C56D3046FFe859cc9deE08a0"]], resolveLP: true } },
+    },
+    polygon: {
+      staking: { __sumTokens: { tokensAndOwners: [["0xc3ec80343d2bae2f8e680fdadde7c17e71e114ea","0xCdD0f77A2A158B0C7cFe38d00443E9A4731d6ea6"],["0xc3ec80343d2bae2f8e680fdadde7c17e71e114ea","0xD77F495Ce60cd9414F99670bEc8657A021e34C83"],["0xc3ec80343d2bae2f8e680fdadde7c17e71e114ea","0x427756E0BBb792f24018E670D570b1b147DbF1F8"],["0x3f6b3595ecf70735d3f48d69b09c4e4506db3f47","0xd1ecDC553651daB068486d9c4d066eCDC614416e"]] } },
+      pool2: { __sumTokens: { tokensAndOwners: [["0xff2bbcb399ad50bbd06debadd47d290933ae1038","0xCBf42Ace1dBD895FFDCaBC1b841488542626014d"],["0x1dF661fC4319415a2f990bd5F49D5cA70EFDee1C","0x11c70CAA910647d820bD014d676Dcd97EDD64A99"]], resolveLP: true } },
+    },
   },
   'olafinance': {
     fantom: { comptroller: '0x892701d128d63c9856A9Eb5d967982F78FD3F2AE' },
@@ -326,7 +365,7 @@ const configs = {
     ethereum: { comptroller: '0x895879b2c1fbb6ccfcd101f2d3f3c76363664f92' },
   },
   'aurigami': {
-    aurora: { comptroller: '0x817af6cfAF35BdC1A634d6cC94eE9e4c68369Aeb', cether: '0xca9511B610bA5fc7E311FDeF9cE16050eE4449E9', cetheEquivalent: '0xc9bdeed33cd01541e1eed10f90519d2c06fe3feb' },
+    aurora: { comptroller: '0x817af6cfAF35BdC1A634d6cC94eE9e4c68369Aeb', cether: '0xca9511B610bA5fc7E311FDeF9cE16050eE4449E9', cetheEquivalent: ADDRESSES.aurora.WETH_2 },
   },
   'novation': {
     blast: { comptroller: '0x3090Cd174218BB451C7865bDC621d47E1Bd6831C', abis: { getAllMarkets: 'address[]:allMarkets', totalBorrows: 'uint256:totalBorrow' } },
@@ -366,13 +405,14 @@ const configs = {
     unichain: { comptroller: '0xe22af1e6b78318e1Fe1053Edbd7209b8Fc62c4Fe' },
   },
   'zenolend': {
-    apechain: { comptroller: '0xc2C583093Af9241E17B2Ec51844154468D21bF6F' },
-    unichain: { comptroller: '0x086036b34689709cFAe75dfC453846b744bD8dcA' },
-    soneium: { comptroller: '0x5075A7E2B018f352220874718E3f5Bd38C6DFD5D' },
+    apechain: { comptroller: '0xc2C583093Af9241E17B2Ec51844154468D21bF6F', isInsolvent: true },
+    unichain: { comptroller: '0x086036b34689709cFAe75dfC453846b744bD8dcA', isInsolvent: true },
+    soneium: { comptroller: '0x5075A7E2B018f352220874718E3f5Bd38C6DFD5D', isInsolvent: true },
     sty: { comptroller: '0x5075A7E2B018f352220874718E3f5Bd38C6DFD5D' },
     hemi: { comptroller: '0xc2C583093Af9241E17B2Ec51844154468D21bF6F' },
   },
   'mare-finance-v2': {
+    deadFrom: '2026-09-30',
     methodology: 'Same as Compound Finance, we just count all the tokens supplied (not borrowed money) on the lending markets',
     kava: { comptroller: '0xFcD7D41D5cfF03C7f6D573c9732B0506C72f5C72', isInsolvent: true },
   },
@@ -432,7 +472,7 @@ const configs = {
     base: { comptroller: '0x1DB2466d9F5e10D7090E7152B68d62703a2245F0' },
   },
   'moonwell': {
-    hallmarks: [['2022-08-01', 'Nomad Bridge Exploit']],
+    hallmarks: [['2022-08-01', 'Nomad Bridge Exploit'], ['2026-08-27', 'MAMO oracle exploit on Base']],
     moonbeam: {
       comptroller: '0x8E00D5e02E65A19337Cdba98bbA9F84d4186a180',
       cether: '0x091608f4e4a15335145be0a279483c0f8e4c7955',
@@ -441,6 +481,8 @@ const configs = {
     base: {
       comptroller: '0xfBb21d0380beE3312B33c4353c8936a0F13EF26C',
       staking: ['0xe66E3A37C3274Ac24FE8590f7D84A2427194DC17', '0xa88594d404727625a9437c3f886c7643872296ae'],
+      // 2026-08-27 MAMO oracle exploiter, ~$9.5M of debt against worthless mMAMO collateral
+      excludedBorrowers: ['0x719eae70d4a83f35bf82a2740699f5db84be919d'],
     },
     optimism: { comptroller: '0xCa889f40aae37FFf165BccF69aeF1E82b5C511B9' },
     ethereum: { comptroller: '0xdec80bB934397575594E91970b37baf65f5b21bE' },
@@ -484,15 +526,20 @@ const configs = {
   },
   'tectonic': {
     cronos: [
-      { comptroller: '0xb3831584acb95ed9ccb0c11f677b5ad01deaeec0', cether: '0xeadf7c01da7e93fdb5f16b0aa9ee85f978e89e95' },
+      { comptroller: '0xb3831584acb95ed9ccb0c11f677b5ad01deaeec0', cether: '0xeadf7c01da7e93fdb5f16b0aa9ee85f978e89e95', isInsolvent: true },
       { comptroller: '0x8312A8d5d1deC499D00eb28e1a2723b13aA53C1e', cether: '0xf4ff4b8ee660d4276eda17e79094a7cc519e9606' },
-      { comptroller: '0x7E0067CEf1e7558daFbaB3B1F8F6Fa75Ff64725f', cether: '0x972173afb7eefb80a0815831b318a643442ad0c1' },
+      { comptroller: '0x7E0067CEf1e7558daFbaB3B1F8F6Fa75Ff64725f', cether: '0x972173afb7eefb80a0815831b318a643442ad0c1'  },
     ],
   },
   'mage': {
     methodology,
     merlin: [
-      { comptroller: '0xCE3bcCd2b0A457782f79000Be1b534C04B3F5aDD', cether: '0xe3b51f15dc086fba15426b8d42b4cd6feb46968e' },
+      {
+        comptroller: '0xCE3bcCd2b0A457782f79000Be1b534C04B3F5aDD', cether: '0xe3b51f15dc086fba15426b8d42b4cd6feb46968e',
+        isInsolvent: true,
+        // comptroller reverts on getAllMarkets since mid-2026; market list read at merlin block 28744793
+        markets: ['0xE3b51F15dc086fbA15426B8D42b4CD6FeB46968e', '0x8b180546d38F437273D1B71c4b9cA6Fc44E16425', '0x4409BF9EC77c8c6607Fe00E373df3B99d529A976', '0xF60e9c878FAb7555D30e0AE52Fe5e2870CaF2f23', '0xc3190A4e6A989b84F8a20c84C9ddD7eF5b1D4540', '0xba36B01387eF05C2E77f133366A891721012e338'],
+      },
       { comptroller: '0xe7464Caa3fD31A1A8B458a634e72F94A00695d17' },
     ],
   },
@@ -518,6 +565,30 @@ const configs = {
       { comptroller: '0xe9266ae95bB637A7Ad598CB0390d44262130F433', cether: ['0xafabd582e82042f4a8574f75c36409abea916ac5'], isInsolvent: true },
       { comptroller: '0xfFF8Fc176697D04607cF4e23E91c65aeD1c3d3F5', cether: ['0x530a8d3fdf61112f8a879d753fe02e9e37ec36aa'], isInsolvent: true },
     ],
+  },
+  'shoebillFinance-v2': {
+    // manta, metis, fuse markets flagged insolvent (borrowed bucket emptied); zeta (aave v3) removed
+    klaytn: { comptroller: '0xEE3Db1711ef46C04c448Cb9F5A03E64e7aa22814', cether: '0xac6a4566d390a0da085c3d952fb031ab46715bcf' },
+    wemix: { comptroller: '0xBA5E3f89f57342D94333C682e159e68Ee1Fc64De', cether: '0xD42ad8346d14853EB3D30568B7415cF90C579D83' },
+    manta: [
+      { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0xE103F874B2D144C5B327FA3d57069Bb19c0779e2', isInsolvent: true },
+      { comptroller: '0x3413Dc597aE3bE40C6f10fC3D706b884eaCF470A', isInsolvent: true },
+      { comptroller: '0x4e4b415F5aa78a44CE1fc259D2cEc47BF50A9216', isInsolvent: true },
+    ],
+    mode: { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0xD13bE8b716b18265e294831FCb1330d170840BB3' },
+    metis: { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0x386adCa3c7D5C90523287933B05919aFcC2883dE', isInsolvent: true },
+    bsquared: [
+      { comptroller: '0x80E81348D9386Eb4d10c2A32A7458638cD3308dF', cether: '0x8dbf84c93727c85DB09478C83a8621e765D20eC2', isInsolvent: true },
+      { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', isInsolvent: true },
+    ],
+    bob: [
+      { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0xb4255533Ad74A25A83d17154cB48A287E8f6A811', isInsolvent: true },
+      { comptroller: '0xB7ed6c062caAaCb1A13f317E0A751289280FC306', isInsolvent: true },
+      { comptroller: '0x1e514767F5cFe1ddE599dd39a79666E3BeEAaf7d', isInsolvent: true },
+    ],
+    kroma: { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0xD13bE8b716b18265e294831FCb1330d170840BB3' },
+    fuse: { comptroller: '0x9f53Cd350c3aC49cE6CE673abff647E5fe79A3CC', cether: '0xD13bE8b716b18265e294831FCb1330d170840BB3', isInsolvent: true },
+    zklink: { comptroller: '0x89e348e0ab4D83aEDbf1354004552822a805a12e', cether: '0x4dA697a89ea1D166881362b56E6863294820eC97' },
   },
   'wanlend': {
     methodology,
@@ -566,7 +637,7 @@ const configs = {
   },
   'bastion': {
     aurora: [
-      { comptroller: '0x6De54724e128274520606f038591A00C5E94a1F6', cether: '0x4E8fE8fd314cFC09BDb0942c5adCC37431abDCD0', cetheEquivalent: '0xc9bdeed33cd01541e1eed10f90519d2c06fe3feb' },
+      { comptroller: '0x6De54724e128274520606f038591A00C5E94a1F6', cether: '0x4E8fE8fd314cFC09BDb0942c5adCC37431abDCD0', cetheEquivalent: ADDRESSES.aurora.WETH_2 },
       { comptroller: '0xA195b3d7AA34E47Fb2D2e5A682DF2d9EFA2daF06' },
       { comptroller: '0xe1cf09BDa2e089c63330F0Ffe3F6D6b790835973' },
       { comptroller: '0xE550A886716241AFB7ee276e647207D7667e1E79' },
@@ -575,6 +646,14 @@ const configs = {
   'xpert': {
     ink: [{ comptroller: '0x4f3b08B7FE4E14f728d084850A7B9CFF2E759Eb7' }],
     base: [{ comptroller: '0xaE9dFbb5E3848AB056acA352D783d7e569EF83b3' }],
+  },
+  'kyros-finance': {
+    robinhood: [{ comptroller: '0x5f3Da5a8bCF26011e95CA2D03aFc6E0C54D4F0c9', cether: '0x73940Df7412C3c04aF3975BE26652B467BAE65A3' }],
+  },
+  'kinetixdao': {
+    methodology: 'TVL counts the underlying tokens (KKUB and USDT) held as cash by every market listed by the KINETIXDAO Comptroller on KUB Chain, i.e. supplied minus borrowed. Native KUB is wrapped to KKUB by the gateway before it is supplied, so it is counted as KKUB. Borrowed counts the totalBorrows of each market and is not included in TVL.',
+    start: '2026-10-08',
+    bitkub: [{comptroller: '0xc5DD9f1cE32f19C0a76a924F681914A8D10E8008'},]
   }
 }
 

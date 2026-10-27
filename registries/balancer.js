@@ -59,6 +59,7 @@ function balV2Chain(fromBlock) {
 const configs = {
   // ===== Balancer V2 (onChainTvl) =====
   'balancer': {
+    hallmarks: [['2026-10-30', 'Balancer pausable pools move to withdrawals-only']],
     ethereum: balV2Chain(12272146),
     polygon: balV2Chain(15832990),
     arbitrum: balV2Chain(222832),
@@ -153,6 +154,10 @@ const configs = {
     _options: { helperType: 'v3' },
     bsc: { vault: '0xb61cb1E8EF4BB1b74bB858B8B60d82d79488F13D', fromBlock: 60471472 },
   },
+  'bush': {
+    _options: { helperType: 'v3' },
+    robinhood: { vault: '0xB055000fbE3cc9bDE7742C583a86cc6283E3fF85', fromBlock: 24180135 },
+  },
 
   // ===== Balancer V1 (v1Tvl) =====
   'valueliquid': {
@@ -167,7 +172,7 @@ const configs = {
       ADDRESSES.ethereum.sUSD_OLD,
       "0x00f109f744B5C918b13d4e6a834887Eb7d651535", "0x645F7dd67479663EE7a42feFEC2E55A857cb1833", "0x4922a015c4407F87432B179bb209e125432E4a2A",
       "0xdA16D6F08F20249376d01a09FEBbAd395a246b2C", "0x9be4f6a2558f88A82b46947e3703528919CE6414",
-    ]},
+    ], permitFailure: true }, // several paused tokens (PieDAO pies etc.) revert balanceOf
   },
 }
 

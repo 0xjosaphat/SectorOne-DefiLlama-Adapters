@@ -10,9 +10,9 @@ const { isLP, log, sliceIntoChunks, isICHIVaultToken, createIncrementArray, slee
 const { sumArtBlocks, whitelistedNFTs, } = require('./nft')
 const uniV3ABI = require('./abis/uniV3.json');
 const slipstreamNftABI = require('../arcadia-finance-v2/slipstreamNftABI.json');
-const { covalentGetTokens, blockscoutGetTokens, } = require("./token");
+const { covalentGetTokens, } = require("./token");
 const SOLIDLY_VE_NFT_ABI = require('./abis/solidlyVeNft.json');
-const { tickToPrice } = require('./utils/tick');
+const { tickToPrice, getSqrtPriceX96AtTick } = require('./utils/tick');
 const { queryAllium } = require('./allium');
 const { cachedGraphQuery } = require('./cache');
 
@@ -103,6 +103,8 @@ async function unwrapUniswapV4NFTs({ balances = {}, api, owner, nftAddress, stat
       case 'unichain': stateViewer = '0x86e8631A016F9068C3f085fAF484Ee3F5fDee8f2'; break;
       case 'base': stateViewer = '0xA3c0c9b65baD0b08107Aa264b0f3dB444b867A71'; break;
       case 'monad': stateViewer = '0x77395f3b2e73ae90843717371294fa97cc419d64'; break;
+      case 'robinhood': stateViewer = '0xf3334192d15450cdd385c8b70e03f9a6bd9e673b'; break;
+      case 'arc': stateViewer = '0xF3334192D15450CdD385c8B70e03f9A6bD9E673b'; break;
       default: throw new Error('missing default uniswap state viewer address chain: ' + chain)
     }
 
@@ -115,6 +117,8 @@ async function unwrapUniswapV4NFTs({ balances = {}, api, owner, nftAddress, stat
       case 'unichain': nftAddress = '0x4529A01c7A0410167c5740C487A8DE60232617bf'; break;
       case 'base': nftAddress = '0x7C5f5A4bBd8fD63184577525326123B519429bDc'; break;
       case 'monad': nftAddress = '0x5b7ec4a94ff9bedb700fb82ab09d5846972f4016'; break;
+      case 'robinhood': nftAddress = '0x58daec3116aae6d93017baaea7749052e8a04fa7'; break;
+      case 'arc': nftAddress = '0x6049c9a0e26405C0985f9E3685C87d0aE917f82B'; break;
       default: throw new Error('missing default uniswap nft address chain: ' + chain)
     }
 
@@ -220,8 +224,10 @@ async function unwrapUniswapV4NFT({ balances, nftAddress, stateViewer, api, blac
     calls: poolInfos,
   });
 
+  // value positions from sqrtPriceX96, not tick: a swap that stops exactly on a tick boundary moving down reports
+  // tick = boundary - 1 while the price sits on the boundary, which would count a full tick of liquidity that isn't there
   slot0.forEach((slot, i) => {
-    lpInfoArray[i].tick = slot.tick;
+    lpInfoArray[i].sqrtPrice = Number(slot.sqrtPriceX96) / 2 ** 96;
   });
 
   positions.map(addV4PositionBalances)
@@ -281,19 +287,17 @@ async function unwrapUniswapV4NFT({ balances, nftAddress, stateViewer, api, blac
     const liquidity = position.liquidity
     const bottomTick = +position.tickLower
     const topTick = +position.tickUpper
-    const tick = +lpInfo[getKey(position)].tick
-    const sa = tickToPrice(bottomTick / 2)
-    const sb = tickToPrice(topTick / 2)
+    const sp = lpInfo[getKey(position)].sqrtPrice
+    // exact edges: 1.0001 ** (tick / 2) drifts ~1e-12 from TickMath, which misvalues positions priced at an edge
+    const sa = Number(getSqrtPriceX96AtTick(bottomTick)) / 2 ** 96
+    const sb = Number(getSqrtPriceX96AtTick(topTick)) / 2 ** 96
 
     let amount0 = 0
     let amount1 = 0
 
-    if (tick < bottomTick) {
+    if (sp <= sa) {
       amount0 = liquidity * (sb - sa) / (sa * sb)
-    } else if (tick < topTick) {
-      const price = tickToPrice(tick)
-      const sp = price ** 0.5
-
+    } else if (sp < sb) {
       amount0 = liquidity * (sb - sp) / (sp * sb)
       amount1 = liquidity * (sp - sa)
     } else {
@@ -326,6 +330,9 @@ async function unwrapUniswapV3NFTs({ balances = {}, nftsAndOwners = [], api, own
         case 'flare': nftAddress = '0xD9770b1C7A6ccd33C75b5bcB1c0078f46bE46657'; break;
         case 'hyperliquid': nftAddress = '0x6eDA206207c09e5428F281761DdC0D300851fBC8'; break;
         case 'unichain': nftAddress = '0x943e6e07a7E8E791dAFC44083e54041D743C46E9'; break;
+        case 'robinhood': nftAddress = '0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3'; break;
+        case 'arc': nftAddress = '0x39654A85A4C05127f5Fd6ED22CAeC077A0fB1377'; break;
+        case 'stable': nftAddress = '0x3BdC3437405f7D801b6036532713fc1F179136a6'; break; // stableswap
         default: throw new Error('missing default uniswap nft address chain: ' + chain)
       }
 
@@ -556,7 +563,36 @@ async function unwrapSlipstreamV3NFTs({ balances, nftsAndOwners = [], api, owner
   return balances
 }
 
-async function getPositionIdsByNftAddress({ api, nftsAndOwners, }) {
+// Aero (MetaDEX) CL NonfungiblePositionManager ("AERO-CL"), same address on every chain it is deployed on.
+// Its positions(), the CLFactory's getPool(token0, token1, int24 tickSpacing) and the pool's slot0() share the
+// Slipstream layout, so unwrapSlipstreamNFT resolves its positions.
+const metadexCLNFTs = {
+  base: '0x4857DB576eE0e45F10525eC59527BfD10beeC60b',
+  optimism: '0x4857DB576eE0e45F10525eC59527BfD10beeC60b',
+  robinhood: '0x4857DB576eE0e45F10525eC59527BfD10beeC60b',
+}
+
+async function unwrapMetadexCLNFTs({ balances, nftsAndOwners = [], api, owner, nftAddress, owners, blacklistedTokens = [], whitelistedTokens = [], uniV3ExtraConfig = {} }) {
+  const chain = api.chain
+  if (!nftsAndOwners.length) {
+    if (!nftAddress) nftAddress = metadexCLNFTs[chain]
+    // no MetadexCL deployment on this chain, so there is nothing to resolve
+    if (!nftAddress) return balances
+
+    if ((!owners || !owners.length) && owner)
+      owners = [owner]
+    owners = getUniqueAddresses(owners, chain)
+    nftsAndOwners = owners.map(o => [nftAddress, o])
+  }
+  // before the position manager is deployed (historical runs) balanceOf has no code to call; count that as no positions
+  const positionIdsByNftAddress = await getPositionIdsByNftAddress({ api, nftsAndOwners, permitFailure: true, })
+  for (const [nftAddress, positionIds] of Object.entries(positionIdsByNftAddress)) {
+    await unwrapSlipstreamNFT({ balances, positionIds, nftAddress, api, blacklistedTokens, whitelistedTokens, uniV3ExtraConfig, })
+  }
+  return balances
+}
+
+async function getPositionIdsByNftAddress({ api, nftsAndOwners, permitFailure = false, }) {
   const ownersByNFT = {}
   nftsAndOwners.forEach(([nftAddress, owner]) => {
     nftAddress = normalizeAddress(nftAddress, api.chain)
@@ -567,7 +603,7 @@ async function getPositionIdsByNftAddress({ api, nftsAndOwners, }) {
   const positionIdsByNftAddress = {}
   for (let [nftAddress, owners] of Object.entries(ownersByNFT)) {
     owners = Array.from(owners)
-    const positionIdBalances = await api.multiCall({ abi: 'erc20:balanceOf', target: nftAddress, calls: owners })
+    const positionIdBalances = await api.multiCall({ abi: 'erc20:balanceOf', target: nftAddress, calls: owners, permitFailure })
     const positionIdCalls = []
     positionIdBalances.forEach((idCount, i) => {
       const count = +idCount
@@ -597,6 +633,17 @@ async function unwrapSlipstreamNFT({ api, balances, owner, positionIds = [], nft
   whitelistedTokens = getUniqueAddresses(whitelistedTokens, chain)
   let nftIdFetcher = uniV3ExtraConfig.nftIdFetcher ?? nftAddress
 
+  if ((!positionIds || positionIds.length === 0) && owner) {  // if positionIds are not provided and owner address is passed
+    const nftPositions = await api.call({ target: nftIdFetcher, params: owner, abi: 'erc20:balanceOf' })
+    positionIds = (await api.multiCall({
+      abi: uniV3ABI.tokenOfOwnerByIndex, target: nftIdFetcher,
+      calls: Array(Number(nftPositions)).fill(0).map((_, index) => ({ params: [owner, index] })),
+    }))
+  }
+
+  // nothing to value, so the position manager and its factory are never called
+  if (!positionIds?.length) return balances
+
   let factory
   if (isShadow) {
     const deployer = await api.call({ target: nftAddress, abi: 'address:deployer' })
@@ -605,14 +652,6 @@ async function unwrapSlipstreamNFT({ api, balances, owner, positionIds = [], nft
     const factoryKey = getFactoryKey(chain, nftAddress)
     if (!factories[factoryKey]) factories[factoryKey] = api.call({ target: nftAddress, abi: uniV3ABI.factory, })
     factory = (await factories[factoryKey])
-  }
-
-  if ((!positionIds || positionIds.length === 0) && owner) {  // if positionIds are not provided and owner address is passed
-    const nftPositions = await api.call({ target: nftIdFetcher, params: owner, abi: 'erc20:balanceOf' })
-    positionIds = (await api.multiCall({
-      abi: uniV3ABI.tokenOfOwnerByIndex, target: nftIdFetcher,
-      calls: Array(Number(nftPositions)).fill(0).map((_, index) => ({ params: [owner, index] })),
-    }))
   }
 
   const positionsAbi = isShadow ? shadowV3PositionsABI : slipstreamNftABI.positions
@@ -680,6 +719,15 @@ const gasTokens = [nullAddress, ADDRESSES.GAS_TOKEN_2, '0xbbbbbbbbbbbbbbbbbbbbbb
   '0x000000000000000000000000000000000000800a', // zksync era gas token
 ]
 const gasTokenSet = new Set(gasTokens)
+// ERC-20 views of the native coin: balanceOf returns the same number as eth_getBalance, so they are
+// read as the native balance and deduped per owner, otherwise listing both counts the coin twice
+const nativeTokenAliases = {
+  polygon: ADDRESSES.polygon.WMATIC_1, // POL (MRC20)
+  celo: ADDRESSES.celo.CELO, // CELO (GoldToken)
+  metis: ADDRESSES.metis.Metis, // METIS
+  arc: ADDRESSES.arc.USDC, // USDC (6 decimals, native is 18)
+  stable: ADDRESSES.xlayer.USDT0, // USDT0 (6 decimals, native is 18)
+}
 /*
 tokensAndOwners [
     [token, owner] - eg ["0xaaa", "0xbbb"]
@@ -692,8 +740,9 @@ async function sumTokens(balances = {}, tokensAndOwners, block, chain = "ethereu
   let ethBalanceInputs = []
 
   tokensAndOwners = tokensAndOwners.filter(i => {
+    if (i[1] === nullAddress) return false  // ignore nullAddress owners, as they are usually used to burn tokens
     const token = normalizeAddress(i[0], chain)
-    if (token !== nullAddress && !gasTokens.includes(token))
+    if (token !== nullAddress && !gasTokens.includes(token) && token !== nativeTokenAliases[chain])
       return true
     ethBalanceInputs.push(i[1])
     return false
@@ -956,6 +1005,7 @@ async function sumTokens2({
   resolveSlipstream = false,
   resolveSlipstreamV2 = false,
   resolveSlipstreamV3 = false,
+  resolveMetadexCL = false,
   resolveStakewiseDeposits = false,
   uniV3WhitelistedTokens = [],
   uniV3nftsAndOwners = [],
@@ -964,7 +1014,6 @@ async function sumTokens2({
   resolveVlCVX = false,
   permitFailure = false,
   fetchCoValentTokens = false,
-  fetchBlockscoutTokens = false,
   tokenConfig = {
     // onlyWhitelisted
     // onlyUseExistingCache
@@ -1052,11 +1101,6 @@ group by
     cTokens.forEach((tokens, i) => ownerTokens.push([tokens, owners[i]]))
   }
 
-  if (fetchBlockscoutTokens) {
-    const bTokens = await Promise.all(owners.map(i => blockscoutGetTokens(i, api, tokenConfig)))
-    bTokens.forEach((tokens, i) => ownerTokens.push([tokens, owners[i]]))
-  }
-
   if (resolveNFTs) {
     const coreNftTokens = whitelistedNFTs[api.chain] ?? []
     const nftTokens = await Promise.all(owners.map(i => covalentGetTokens(i, api, { onlyWhitelisted: false })))
@@ -1117,6 +1161,9 @@ group by
 
   if (resolveSlipstreamV3)
     await unwrapSlipstreamV3NFTs({ balances, api, owner, owners, blacklistedTokens, whitelistedTokens: uniV3WhitelistedTokens, nftsAndOwners: uniV3nftsAndOwners, uniV3ExtraConfig, })
+
+  if (resolveMetadexCL)
+    await unwrapMetadexCLNFTs({ balances, api, owner, owners, blacklistedTokens, whitelistedTokens: uniV3WhitelistedTokens, nftsAndOwners: uniV3nftsAndOwners, uniV3ExtraConfig, })
 
   blacklistedTokens = blacklistedTokens.map(t => normalizeAddress(t, chain))
   tokensAndOwners = tokensAndOwners.map(([t, o]) => [normalizeAddress(t, chain), o]).filter(([token]) => !blacklistedTokens.includes(token))
@@ -1356,10 +1403,46 @@ async function unwrapStakewiseDeposits({ api, owners = [], vault = '0xAC0F906E43
   assets.forEach(a => api.add(nullAddress, a))
 }
 
+const DOLOMITE_MARGIN = {
+  ethereum: '0x003Ca23Fd5F0ca87D01F6eC6CD14A8AE60c2b97D',
+  arbitrum: '0x6Bd780E7fDf01D77e4d475c821f1e7AE05409072',
+  berachain: '0x003Ca23Fd5F0ca87D01F6eC6CD14A8AE60c2b97D',
+  mantle: '0x003Ca23Fd5F0ca87D01F6eC6CD14A8AE60c2b97D',
+  polygon_zkevm: '0x003Ca23Fd5F0ca87D01F6eC6CD14A8AE60c2b97D',
+  xlayer: '0x003Ca23Fd5F0ca87D01F6eC6CD14A8AE60c2b97D',
+}
+
+const DOLOMITE_GET_ACCOUNT_BALANCES_ABI = 'function getAccountBalances((address owner, uint256 number) account) view returns (uint256[], address[], (bool sign, uint128 value)[], (bool sign, uint256 value)[])'
+
+// unwraps dolomite deposits, pass either `accounts` (list of [owner, accountNumber]) or `owner`/`owners` with a shared `accountNumber`
+async function unwrapDolomiteDeposits({ api, accounts = [], owner, owners = [], accountNumber = 0, dolomiteMargin, onlyPositive = true, }) {
+  const margin = dolomiteMargin ?? DOLOMITE_MARGIN[api.chain]
+  if (!margin) throw new Error('unwrapDolomiteDeposits: missing dolomiteMargin for chain ' + api.chain)
+  if (owner) owners = [...owners, owner]
+  accounts = [...accounts, ...owners.map(i => [i, accountNumber])]
+
+  const res = await api.multiCall({
+    abi: DOLOMITE_GET_ACCOUNT_BALANCES_ABI,
+    target: margin,
+    calls: accounts.map(([owner, number]) => ({ params: [[owner, number]] })),
+  })
+
+  res.forEach(({ [1]: tokens, [3]: weis }) => {
+    tokens.forEach((token, i) => {
+      const { sign, value } = weis[i]
+      if (onlyPositive && !sign) return  // negative balance = borrow
+      api.add(token, sign ? value : -value)
+    })
+  })
+  return api.getBalances()
+}
+
 module.exports = {
   PANCAKE_NFT_ADDRESS,
+  unwrapDolomiteDeposits,
   unwrapUniswapLPs,
   unwrapSlipstreamNFT,
+  unwrapMetadexCLNFTs,
   unwrapUniswapV3NFT,
   sumTokens,
   genericUnwrapCvx,

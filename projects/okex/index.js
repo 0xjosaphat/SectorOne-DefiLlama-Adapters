@@ -2,6 +2,8 @@ const ADDRESSES = require("../helper/coreAssets.json");
 const { cexExports } = require("../helper/cex");
 const { mergeExports, getStakedEthTVL } = require("../helper/utils");
 const bitcoinAddressBook = require("../helper/bitcoin-book/index.js");
+const { post } = require("../helper/http");
+const { nullAddress } = require("../helper/tokenMapping");
 
 const config = {
   bitcoin: { owners: bitcoinAddressBook.okex },
@@ -233,6 +235,18 @@ const config = {
       "0x173810f8ca9c4c631aeb1d6c36d007f054fee980",
       "0x92ea7496eba5f001d620005f88f3e8e686e3d4ea",
       "0x45f329ff834a84fccea2319f91e1993540b22a2a",
+      "0xa073345811e360e9b66f24bc11f3a4bfa924f236",
+      "0xccdcfc4598f539408fc0393b42905c1e0d24a91e",
+      "0xcee27e2fa3675248ecbf53f67fd59e71fa82c8cd",
+      "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
+      "0x41836676f779c4188499c301df67aa9a0510fd6f",
+      "0xebf6c883a1d60ab38c8ed4780aadbfe4c805ed4f",
+      "0x72ec2e073324960a4ec15758bab80f9ffd53f903",
+      "0xbb3c6d28def21b6297016622a57a0b05015e3ad2",
+      "0xe11eb181b936b47e37b8e5bd2e65c79bd71ce86f",
+      "0xcff6efc78928d873f9c30251decefaf2ad92fbed",
+      "0x9c22a4039f269e72de6b029b273be059cdbb831c",
+      "0xcf3061b9e65f1f84d0839bb54d79a471eed7b11a",
     ], //ETH DONE
   },
   tron: {
@@ -258,6 +272,8 @@ const config = {
       "TLNrPon76MdjfvreKXd2nmqod7AdyG9To1",
       "TBwBJwj81yXc4DNKS19GJcpUUzfSWRbBzS",
       "TD9GNrgmrg46yistfTMJpRQZcDmDRx1Bmq",
+      "TBNHZP2iAVyDhpTSZ8ee2Xjci1JExZTPE5",
+      "THdXEcBCZ7nagnmfRrfSHoiLRTbSRueoVW",
     ], //TRON DONE
   },
   arbitrum: {
@@ -375,6 +391,7 @@ const config = {
       "C1Fr2dLHvNMWKFuiM5nK5StfgWjbM6QcZcC5nkcYghkJ",
       "8PFD2CYF275p8YdRmhk4C1wcNoKeRVrouYdMbZV6HwHH",
       "3n7E2gZmCaDGpmvmHVHhHg13x7y1zG37tnEXvizxnKY1",
+      "5njZuDSS2WTFkvWWsgv8Q4TfQBuCASKJAztc5yF2qLWZ",
     ],
   }, //SOL DONE
   ripple: {
@@ -393,6 +410,8 @@ const config = {
       "rfah8jhiJwPhcWEn2eQZehWqKKqAWGjxp1",
       "rBPzKpfEh6Pv9qjh6gt9E66BL8UVbcZxHP",
       "rwSY8Fwq6PKKDUtjScSi7ZVap3BJHi6oRs",
+      "rUVtjZ5Kg4TJ4osZCJooq3hunjuACtNx4W",
+      "rQfxZ8c12uByDtLVnT1a56aXkcBFdDMwhq",
     ],
   }, //XRP DONE
   litecoin: {
@@ -667,7 +686,169 @@ const config = {
       "UQDY4-KtVxawZU_Vva7KTOhlhx8Ho0jI0ahyebYT5YuJkYSf",
     ],
   },
+  xlayer: {
+    owners: [
+      "0x0f5a137dce05fb40d1ff1880db49e088a8bf8224",
+      "0xdc9700dc816d8fa38d7ee201e4d3a8f35fdf6a8f",
+      "0x9437041f1bb58f9a07d8535ad43a9f351ae9b0fe",
+      "0x8dab75909be77a6eca6b1fc6d0ea258c6bda8cd2",
+      "0x5075ff68a0efb54db13423ad924bd680327d305e",
+      "0x925a0f048b056bff7cf7cf40965d2f0c3f6602c8",
+      "0xfd7d78351ee12082b093c716e158063547927a80",
+      "0x9c00c5b3c61269d0436bb177df0ecf4202447dc1",
+      "0xc7177991e471f838c60f243185bf1ac236f35a7e",
+      "0xdc4cf4bc32347b9a4f5cb21e4c2f0c6a73b1495f",
+      "0x3e6522ede5649296976fc0182e03db65340f6703",
+      "0x01b52b38acf355b9e97099d00dd6311d19774b5f",
+      "0xe2e34f3a23738180debec3f24017c2ec6161baa0",
+      "0x814d1c2af10e80ecca6854b7fd0f1f22822630c4",
+      "0x7887dd92fe8566ade028ea921dfb3a0f48c6e2b3",
+      "0x2a588707d39683f182ff0bb55284afb64a8f4af5",
+      "0xf525e00b2c1e7dbef40617609ee589b83f6f63f8",
+      "0x583836b5b520c6bd952c098e668df95d09e966f7",
+      "0xa1d2c4533d867ce4623681f68df84d9cad73cb6b",
+      "0xaac48b32ac37c6b0e3619dce1524f69b67d6ff76",
+      "0x8d2827b6204c5d6906ec31ef12482c411e7de065",
+      "0x52a109504af4a587f773faf949e65987c6ae544a",
+      "0xe64b0f1a50ba340426861f29327e9eaa7fb404ad",
+      "0xcfb691fe064f1caef47eef90a3ddae45225f358c",
+    ],
+  },
+  bitcoincash: {
+    // reserve wallets published in OKX proof of reserves
+    owners: [
+      "3JQrQQzsoqGZnDk3FaYS6EPia4sv5pGS2y",
+      "3A99Y9QPb9ot6ZYMgvv7fDoxLXW8BBQrTa",
+      "35ka22WnKNFjjz6fWUV2tAdovcQGuQaQVU",
+      "3MT81tZMYPkCwUJkgZQtLka3MRiGnbYQrQ",
+      "39ZnmuSNhxSJqbQL1kGjrGvvUc5PHNKjDJ",
+      "3AB4wANNpdSkdkba52bHoqp1SNyjfp6nF7",
+      "3GxtmcatLhjoRVwLszjS3FKGVhSDDZc2vt",
+      "3HcYUKPzrNUYFeMj3vGwA6nWiCJ1BKzetL",
+      "3PhYXPnVz3Bzk6By9brz2xFuXidBB7wRJg",
+      "39AN24C9ZdwEpDx4Wn3rh1Y7bdoZxBDufQ",
+      "3HxmstpaAe3A89tZHWjTkFxPa8XeopUkqJ",
+      "38p2JLYJhzkHZvjXSuk8AZYoxq1dKK8Hjp",
+      "3JNet8tVbYPLV4uGpV2Ry1bdw2Ma6N3hdc",
+      "37VDL6Kw6p3UQTHn8RVSLDqGdEWhVf5wWU",
+      "33ngcLW8QQtYuR7HjoU4sgtEbeezNocfP8",
+      "3Bovhhx3TUGpGFd9ARZaM1kkF6Wny6PPFr",
+      "3FbhtviAPTnWxtNoE8jAeyeihAqHXvrTPv",
+      "3JVRoiy8ZCAY2W6VGD3cxCasLvRqbbFk7M",
+      "3JuyU8aetvRHg1FwusENCUt8ixCZQhJtvA",
+      "3AUDj2USnMActyvCRpVzFMofVFLeZtqWMx",
+      "33qcwPbP2WrTsz1LEV4LuLnvnp5QX4Je8p",
+      "37Et8jpoFHDhArrszeFWQ4JTW35dn7cYw3",
+      "34a5mYcdFKromE59zXX5TmfMx8YMoywAi7",
+    ],
+  },
+  ethereumclassic: {
+    // reserve wallets published in OKX proof of reserves
+    owners: [
+      "0x17317ff152147f4ef9d90e8c52621b248d192a9f",
+      "0x182a7d836729f7f220c361b38fe862a6676fd514",
+      "0x2343321968b02b9010d94bd3e518e33b2cb43ad3",
+      "0x525b59b7aa35cf5d3458b4f3aa7b1a34678bedeb",
+      "0xbf0111d0fc16b642067ca13a2d5f7442ff0b18c5",
+      "0xc4da0292461c515a834efe449cb67e70b64b246b",
+      "0xe4d062d3e4b62e7bf82dddacd1751d3f765f9d2a",
+      "0xf80b49264f07fc84af38fb8904e6f69cbc5146b9",
+      "0xfaa83bd8c107e727dab850f624cf00e401916ba7",
+      "0xd2472941ac1fcb94a16fde6511037a1a85e54b4d",
+      "0x9c0b93ee033620ad7185852558393e470045f47d",
+      "0x611f7bf868a6212f871e89f7e44684045ddfb09d",
+      "0xb0a27099582833c0cb8c7a0565759ff145113d64",
+      "0x1b3832db9c49f2868194ad76550f18ba7a8cf5f7",
+      "0x2dfbf909db2575d4b9cb2cd0da3e6e7b53b87ddf",
+      "0x846a268268e4b561763e042b0e8e237bccf734f3",
+      "0x667d7e1cd84ce5c928570ab5ab4d3d36739b23d9",
+      "0x7d33b0f89ef769e0093c3d0f7bc269ddfd0fc558",
+      "0xea90015d6ea0151379699b43b2240691e34ea992",
+      "0xc96d0e776dc286a2194e80ef2d827f9c164ad02f",
+      "0xc1589087f11fde923b38471f19e1c607ac9a43d9",
+      "0x1305520db240e6197daa3d841c055958050711c4",
+      "0xd170b23974c0ac399fe8cd6df5f491856f807245",
+      "0xe639e15b5329f2e69a19510a448d5c1d9fc59af8",
+      "0x90321720000c38e93d9dd287e75d4cb66212896b",
+      "0x17828ea782004f22365a0a3d3ece5b00301e134d",
+      "0x8f0ab94a72affd8d07e445c33ac4f831474186b8",
+      "0x2c6020fc087d4d6ad710a571d23fdd128045dbca",
+      "0x2958df6dba14ea522b51ac9de0ef94df8cdf8e54",
+      "0xc9cfa03adec1b5f3d2b9a9f9bbbf7b5d20109bec",
+      "0x63a8ab05ae4a3bed92580e05e7dce3b268b54a7f",
+      "0x0322523d4f5e52c7527ae2d15d0d6047cce74351",
+      "0x1712657ee2e63705a86af0cc07cc4fd6ff62da47",
+      "0x580413d3e204e46dc5d429e3242f283cef6d6d0b",
+      "0xa29f639b056a72753429bbc8deaeaa7bba13a367",
+      "0xc59765a37166b140bdfa990eb6450b2e378cd1dd",
+      "0xce97acf84e04f7d98e81d14e2151d8ce2be3c078",
+      "0xf817f0c4d2f3908bc65a4967517b6750af38b71c",
+      "0xfe92306245f89f446297503d1f3d263926045376",
+      "0x30907c9e513a3e57860d61baa95bfc94ff615d19",
+      "0xbd244f163d9da4df54c2d914a5d4a03b0d53ae2c",
+    ],
+  },
+  sui: {
+    // reserve wallets published in OKX proof of reserves
+    owners: [
+      "0xdf7c04c9bebf4b35bd8c66a92469f0b66cf77ce8586b6262709a897659f4e772",
+      "0x33fbf89217a07be0b7d5525a3bc17119a8d7bd70aa3b16eb77d836a4e6c8a026",
+      "0x51c7d354fa0001091433f3d1696460be5971b9929a06b10fd4cc620dc48f0c50",
+      "0x5cee0d361527f8286362b4f2d50c8ada16bb50d483563c0628b39171c1a30d73",
+      "0xfa982d9c0e8b8d6e9f532f30a6ea84a5ad1ee4bb30a8af63c6a766210673785a",
+      "0x68e060da8271071e81eaaef375c9df43dd29510278cf1e3b9e49ed4021fd7b87",
+      "0x204034556683bfd223c62edd67fec690b1fdf385ae00cad12aed50b4663614c2",
+      "0x9dd9f1c801bec8d8d5bf0bdb08f60bf3447330c6e4fdec40263d0ff42b3ef751",
+      "0x4dfc8248418969b3f0f4051e114b537ad360c8ab502cbca073ce8d39db3698ec",
+      "0x95476a5a19ebed27397c75fa349052d98929524f2c2638ffebef6054658324e3",
+      "0xcc42b111927f950c6de134845cf0c3f23e454f3055ccc150e4125ef83bcf48ff",
+      "0x47c879ab819dcf3e29210c718cb76e41e274adf92648b5ce29b7448c8c00d25f",
+      "0xc58c0318ec75d2c9ff6a9b2f6ca51f83cb9f5d7235c8c00fab40d42dc08e03d9",
+      "0x68837eb88cbeca32dea2e6791c45cb74eedd11042986eb3b2ff335da0c671b1e",
+      "0xb7c63eb66b87c6ca7bb955b890717a9b6b6ebf0351a58d96daa1119d3c89d010",
+      "0xfce6072fdae0539f7b67dbb167182b9508db41c28f96d223df8a6dfe003acdf9",
+      "0x94f73634725e799eb0de94eeb942a8d1f0a0638ed304600cf8e53b2f9ad1062c",
+      "0x1387737053849ae34a7b56e17a31f27f9c7b0d390e7204be465b76bede439c86",
+      "0xafa803ea530ca7b517f0532438fe5aec5debc94c6118a89ee4e85314202a9f62",
+      "0x50178da2437bfe3925cbff55a8ee977cde62321ad3a3ade286596c88a0671bf3",
+      "0x7dce1b53c23f36dfbac31a50f31f802f918cd1791e041c17cf249996c97aa0cc",
+      "0x4e875d9578e388736bba18e43e6fb9f67dd5cdf4b3b51511b8ff3e9a77f4a6dc",
+      "0xc83e077565bffafd625b9e4ea05f22289656ded3533f87b4f9b3e15f859193b3",
+      "0x777e20f29a3c51520ac9da1a46cd1b5eb687328b675debdd9ecbb5d256568e7d",
+      "0x0e8f66873614d84814c4011ecaeec00aa1772f3a9cf2f674e3d0c1feae33a3f1",
+      "0xa232ee105fbb7e568cc4ef12908a883107d70ea39751bf6baa72300b6c011f68",
+      "0x5e7d6fe0c2862fde8237f3f0671d649a2dd401ee5ebbe0b522ffb44fc947e531",
+      "0x1505ca4eb0724dfc57d07dee007725baae85f00b8558aaa6c6f9c2e84e7eb7f8",
+      "0xd17c1a0f914ce20358e2d37fabbbbf4fc44b6df9124033d51cabd686cd1064b5",
+      "0xa8e693e9bf8ac63bfa10273f3a70b71a9c56cb5ec886c83461c570b983b8e99e",
+      "0xf41ec57bdddbcedb45f6ab09c7e856ba6906372b07f8a0107c5d2da1ff4a5d85",
+      "0x51a9adc5bb60bdeb95426ac1438cbdc0fa8255504a69bab525a55e95bcfefa88",
+    ],
+  },
 };
+
+const filecoinOwners = [
+  "f1mfxobliwdamau2x25t4mcegzhfln5rwng4aemqi",
+  "f166i6yzjwmenfb3gmca6sihw523vrbvkyskkz2ba",
+  "f14oflhlzkov4zy5f6hew3l33kcifurff4nhcvu7q",
+  "f1rbhn7q4zynh44k4dbwxb3gp244wtttc6k4dkqfa",
+  "f1iesbg2vfubsunwyjjcvaeh3wuxoi4neyatprhmq",
+  "f1suyxmeneosyqaeuvtxja5fago5rco4myqmiqfxa",
+  "f1xtwe3tztwvpndqhfu5oajt2w3va7yrbbf656idq",
+  "f1ohs3ah3pj6s7rna2furnpvcoeztzef5eded6u2y",
+  "f1zyl5thcjbtjniyxpdnbwumnvv5jyhxgwj26nrpq",
+  "f1qojadq2cf67wrcrog3cggsznirq7ghfeoqhr5yy",
+  "f1lm2so6gmnh3a5fgeygmxz47trudyhjpwhwft42i",
+  "f1hnknmq6z23xvlb7b34d437dzvythgsp6twhm3pq",
+  "f1rtslpoqqa4djupboxhrijylj5btxycyrzf2m3vi",
+  "f1cgghcsx3hec4soxqid4rbjovbkzccg7soq6enni",
+  "f1i35x4aaor3xuw7kamwm4jrczfszfzknmosflyby",
+  "f17ym6fm57kek4jhjc5ftcq6ef3zijns5hi2tmflq",
+  "f12nm26c5jkplukmdwfqjcw3kmk6x7isgbtk4eh2q",
+  "f1alskfmg3zxgdqm5qweddm5ioov6ceicama473ka",
+  "f1l6jdoldu2hwgt47fdvtelsch6zepoaspgqnuney",
+  "f1r3rgvwbwes7nwv7ikd5fyhto3nqsgb37c7jrova",
+];
 
 const withdrawalAddresses = [
   "0x33baf43a1e7534fe46507a7d4a001881ae9cca44",
@@ -676,6 +857,29 @@ const withdrawalAddresses = [
   "0x9c595f9518b11b2876b2a5e89996b1fd2c748726",
   "0x32ddc4d173745a41e428ccf3756b907673301992",
 ];
+
+/**
+ * Reads the native FIL balance of each wallet from the Filecoin RPC.
+ * @param {string[]} owners Filecoin wallet addresses
+ * @returns {Promise<bigint>} combined balance in attoFIL
+ */
+async function sumFilecoinBalances(owners) {
+  const body = owners.map((address, id) => ({
+    jsonrpc: "2.0",
+    id,
+    method: "Filecoin.StateGetActor",
+    params: [address, null],
+  }));
+  const responses = await post("https://api.node.glif.io/rpc/v0", body);
+  responses.sort((a, b) => a.id - b.id);
+  if (responses.length !== owners.length) throw new Error(`Filecoin RPC returned ${responses.length} responses for ${owners.length} wallets`);
+  return responses.reduce((total, response, index) => {
+    if (response.id !== index) throw new Error(`Filecoin RPC response ${response.id} at position ${index}`);
+    if (response.error) throw new Error(`Filecoin RPC error for ${owners[index]}: ${response.error.message}`);
+    if (!response.result) throw new Error(`Filecoin RPC returned no actor for ${owners[index]}`);
+    return total + BigInt(response.result.Balance);
+  }, 0n);
+}
 
 module.exports = mergeExports([
   cexExports(config),
@@ -687,6 +891,13 @@ module.exports = mergeExports([
         sleepTime: 20_000,
         proxy: true,
       }),
+    },
+  },
+  {
+    filecoin: {
+      tvl: async (api) => {
+        api.add(nullAddress, await sumFilecoinBalances(filecoinOwners));
+      },
     },
   },
 ]);

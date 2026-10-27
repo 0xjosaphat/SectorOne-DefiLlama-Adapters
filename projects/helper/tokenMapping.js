@@ -19,11 +19,13 @@ coreAssets = JSON.parse(JSON.stringify(coreAssets))
 
 
 const ibcChains = ['ibc', 'terra', 'terra2', 'crescent', 'osmosis', 'kujira', 'stargaze', 'juno', 'injective', 'cosmos', 'provenance', 'comdex', 'umee', 'orai', 'persistence', 'fxcore', 'neutron', 'quasar', 'chihuahua', 'sei', 'archway', 'migaloo', 'secret', 'aura', 'xpla', 'bostrom', 'joltify', 'nibiru',
-  'kopi', 'elys', "pryzm", "mantra", 'agoric', 'band', 'axiome',
-  'celestia', 'dydx', 'carbon', 'milkyway', 'regen', 'sommelier', 'stride', 'prom', 'babylon', 'xion', 'zigchain'
+  'kopi', 'elys', "pryzm", "mantra", 'agoric', 'band', 'axiome', 'allora',
+  'celestia', 'dydx', 'dungeon', 'carbon', 'milkyway', 'regen', 'sommelier', 'stride', 'prom', 'babylon', 'xion', 'zigchain', 'thorchain',
+  'akash', 'fetchhub', 'initia',
 ]
-const caseSensitiveChains = [...ibcChains, ...svmChains, 'tezos', 'ton', 'algorand', 'aptos', 'near', 'bitcoin', 'waves', 'tron', 'litecoin', 'polkadot', 'ripple', 'elrond', 'cardano', 'stacks', 'sui', 'ergo', 'mvc', 'renec', 'doge', 'stellar', 'massa', 'aleo',
+const caseSensitiveChains = [...ibcChains, ...svmChains, 'canton', 'mina', 'decred', 'tezos', 'ton', 'algorand', 'aptos', 'near', 'bitcoin', 'waves', 'tron', 'litecoin', 'polkadot', 'ripple', 'elrond', 'cardano', 'stacks', 'sui', 'ergo', 'mvc', 'renec', 'doge', 'stellar', 'massa', 'aleo',
   'eclipse', 'acala', 'aelf', 'aeternity', 'alephium', 'bifrost', 'bittensor', 'verus', 'dash', 'qubic', 'constellation', 'supra',
+  'kaspa', 'bsv', 'arweave', 'pi', 'zcash', 'flux', 'bitcoincash', 'gnoland', 'kusama', 'filecoin', 'neo3', 'ontology', 'proton',
 ]
 
 const transformTokens = {
@@ -40,19 +42,19 @@ const ibcMappings = {
 }
 
 const fixBalancesTokens = {
-  inri: {
-    '0x116b2ff23e062a52e2c0ea12df7e2638b62fa0fc': {
-      coingeckoId: 'tether',
-      decimals: 6,
-    },
-  },
-  ozone: {
-    // '0x83048f0bf34feed8ced419455a4320a735a92e9d': { coingeckoId: "ozonechain", decimals: 18 }, // was mapped to wrong chain
-  },
   provenance: {
     'ueurc.figure.se': { coingeckoId: 'euro-coin', decimals: 6 },
     'pm.pool.asset.3hjz8rcr3pejdc3msntlvy': { coingeckoId: 'usd-coin', decimals: 0 },
     'pm.pool.asset.1y3flutqcyuf8duew1vj2g': { coingeckoId: 'usd-coin', decimals: 0 },
+  },
+  // ZIGChain v5 migrates the native denom from uzig (6 decimals) to azig (18 decimals);
+  // azig is not priced under zigchain:azig by the coins service yet
+  zigchain: {
+    azig: { coingeckoId: 'zignaly', decimals: 18 },
+  },
+  // the coins service has no platon:<null address> entry for the gas token
+  platon: {
+    [ADDRESSES.null]: { coingeckoId: 'platon-network', decimals: 18 },
   },
 }
 

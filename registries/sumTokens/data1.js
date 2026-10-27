@@ -11,12 +11,6 @@ module.exports = {
     "timetravel": false,
     "solana": { "tokenAccounts": ["FhTJEGXVwj4M6NQ1tPu9jgDZUXWQ9w2hP89ebZHwrJPS"] }
   },
-  "bgsol": {
-    "timetravel": false,
-    "doublecounted": true,
-    "methodology": "Bitget Staked SOL (BGSOL) is a tokenized representation on your staked sSOL",
-    "solana": { "tokenAccounts": ["Ejg5vqsthntG8wJDijzgEWvdvhoAh8pzu4Q4r4MqsdkR"] }
-  },
   "asol": {
     "timetravel": false,
     "methodology": "aSOL TVL is computed by looking at the token balances of the accounts holding the stake pool tokens backing the aSOL Crate. The token accounts come from https://asol.so/#/admin.",
@@ -37,7 +31,7 @@ module.exports = {
   },
   "bulk-trade": {
     "timetravel": false,
-    "methodology": "Counts USDC deposited into the Bulk Trade Season 1 pre-deposits.",
+    "methodology": "Counts USDC held in BULK's Solana mainnet custody vault, which backs collateral deposited for trading and margin.",
     "solana": { "tokenAccounts": ["HwdwwKH1tMXo7ggTKcA5cdQrpcgqSoVib2eQh3BiyEQL"] }
   },
   "stakenova": {
@@ -60,15 +54,35 @@ module.exports = {
       ]
     }
   },
-  "hylo": {
-    "timetravel": false,
+  "arrowpad-fun": {
+    // ArrowPad.fun launchpad on Robinhood Chain: every launch seeds the full
+    // token supply as single-sided Uniswap V3 liquidity and the LP NFT is locked
+    // forever in the ArrowPadLocker (no withdrawal function).
     "doublecounted": true,
-    "methodology": "TVL is calculated by summing all LSTs locked in Hylo protocol.",
-    "solana": {
-      "tokenAccounts": [
-        "2Y3TLkdGoJwbdizxqrZmQwNLYJyGKTgzC4tbetbkvQ43", // jitoSOL
-        "7VNBQCDKt4cxLWW51suV8a6VAYC4R66CfyySiYJek7Rj" // hyloSOL
-      ]
+    "methodology": 'TVL is the WETH side of the permanently locked Uniswap V3 LP positions held by the ArrowPadLocker.',
+    "robinhood": {
+      owners: ['0xBa9C247041a7715591c7B48f20dFBa520a7d68E9'], // ArrowPadLocker
+      resolveUniV3: true,
+      uniV3WhitelistedTokens: [ADDRESSES.robinhood.WETH],
+      uniV3ExtraConfig: { nftAddress: '0x73991a25c818bf1f1128deaab1492d45638de0d3' },
+    }
+  },
+  "prisma-pad": {
+    // Prismapad launchpad on Stable (chain id 988).
+    // v1 (bonding curve, legacy):
+    // https://stablescan.xyz/address/0xdcb881fc8b472eb7797687b237e6cb123c425ff7#code
+    // v2 / v3 (direct-to-DEX — every token launches straight into an official
+    // StableSwap (Uniswap v3) pool; the LP position is locked in the launchpad).
+    // v3 supersedes v2 for new launches; v2 stays live for its existing tokens:
+    // https://stablescan.xyz/address/0xa96d9eadc4d6eed50fa408a33585c5f1df039db5#code
+    // https://stablescan.xyz/address/0x7c1628681c18884a1a90977fdae034282892c842#code
+    "doublecounted": true,
+    "methodology": 'TVL is the USDT0 side of Prismapad liquidity: the bonding-curve reserves held by the legacy v1 launchpad, plus the USDT0 in the locked v3 NFTs',
+    "stable": {
+      owners: ['0xdcb881fc8b472eb7797687b237e6cb123c425ff7', '0xa96d9eadc4d6eed50fa408a33585c5f1df039db5', '0x7c1628681c18884a1a90977fdae034282892c842'],
+      resolveUniV3: true,
+      tokens: [ADDRESSES.stable.USDT0],
+      uniV3WhitelistedTokens: [ADDRESSES.stable.USDT0],
     }
   },
   "katana": {
@@ -97,7 +111,8 @@ module.exports = {
       "tvl": {
         "tokenAccounts": [
           "CRFtzwkekKorgdTRSdvsYeqL1vEuVvwGRvweuWCyaRt3", // jitoSOL @ kySOL Vault
-          "HzwDsHJBtuSTRx3VV6bz1R8yrLywxKgfGte7FASXU8Gd" // JTO @ kyJTO Vault
+          "HzwDsHJBtuSTRx3VV6bz1R8yrLywxKgfGte7FASXU8Gd", // JTO @ kyJTO Vault
+          "HmozbbPg927xtj6Z4oMUBUBSGKA2fDRmUFqWfJFEidbC" // kySOL @ Drip
         ]
       },
       "staking": {
@@ -364,6 +379,17 @@ module.exports = {
         ADDRESSES.starknet.ETH,
         ADDRESSES.starknet.USDT
       ]
+    },
+    "arc": {
+      "owners": [
+        "0x4445AACaCC2dE174B77b37Eb27529ce0B36bC580",
+        "0x89103959Eef431bEa308027b8A5073c5ddc867A2"
+      ],
+      "tokens": [
+        ADDRESSES.arc.USDC,
+        ADDRESSES.arc.WETH,
+        ADDRESSES.arc.cirBTC
+      ]
     }
   },
   "Duality": {
@@ -533,6 +559,7 @@ module.exports = {
     }
   },
   "privcash": {
+    deadFrom: '2026-09-30',
     "kava": {
       "tokensAndOwners": [
         // KAVA: 100 / 1000 / 10000 / 100000 / 1000000
@@ -564,6 +591,7 @@ module.exports = {
     }
   },
   "mirrosset": {
+    deadFrom: '2026-09-30',
     "kava": {
       "tokensAndOwners": [
         ["0xfa9343c3897324496a05fc75abed6bac29f8a40f", "0x587Abb291379Ea84AcE583aB07A13109b9B3F347"], // USDC @ InsurancePool
@@ -688,5 +716,106 @@ module.exports = {
     "ethereum": { "tvl": { "__empty": true }, "staking": { "__empty": true } },
     "moonriver": { "tvl": { "__empty": true }, "staking": { "__empty": true } },
     "harmony": { "tvl": { "__empty": true }, "staking": { "__empty": true } }
+  },
+  "linear": {
+    "methodology": "Counts LINA used to collateralize lUSD",
+    "bsc": {
+      "tvl": {
+        "tokensAndOwners": [
+          ["0x762539b45A1dCcE3D36d080F74d1AED37844b878", "0xcE2c94d40e289915d4401c3802D75f6cA5FEf57E"], // LINA @ LnCollateralSystem
+          [ADDRESSES.bsc.BUSD, "0x072F11c46146Ce636691d387BFbF8fD28e818EE8"] // bUSD @ vault
+        ]
+      },
+      "pool2": { "__pool2": ["0x12efdFF85f717ac1738CF50Be5f4Cdc916b0B8B1", "0x392f351fc02a3b74f7900de81a9aaac13ec28e95"] }
+    }
+  },
+  "pascal": {
+    "methodology": "TVL is the USDC collateral held in Pascal's vault token account on Solana.",
+    "solana": { "tokenAccounts": ["5vRGRcwN4iYaiQdso1vgWbTDFYbS8GQNUDRMMKE2ycZS"] }
+  },
+  megapump: {
+    // MegaPump v3: a bonding curve is quoted in ETH, USDm or MEGA (chosen at creation). The factory
+    // (UUPS proxy) holds the quote of every active curve; it moves to the DEX pool at graduation,
+    // where megapump-dex (registries/uniswapV2.js) counts it.
+    methodology: "Value of the ETH, USDm and MEGA held by the MegaPump factory: the quote currency of every active bonding curve, plus fees not yet claimed or withdrawn.",
+    megaeth: {
+      owner: '0xB6bC3988d62D2979b3ab7AABCcf3c9443f7dAbc4',
+      tokens: [ADDRESSES.null, ADDRESSES.megaeth.USDm, ADDRESSES.megaeth.MEGA],
+    },
+  },
+  "n1-exchange-bridge": {
+    "methodology": "Counts the USDC held in the N1 Exchange bridge custody wallet on Solana.",
+    "solana": {
+      "owners": ["2ds4b3zrkgZ9FU8vNBSpT1UzACnmfYtjGsazPRzsbCCz"],
+      "tokens": [ADDRESSES.solana.USDC]
+    }
+  },
+  "satrush": {
+    "timetravel": false,
+    "methodology": "Counts BTC (cbBTC) received from mining held in the Sats Vault. Staking counts RUSH received from mining held in the Rush Vault and RUSH staked in the SatRush staking program.",
+    "solana": {
+      "tvl": {
+        "tokenAccounts": [
+          "2zpcctvd7sCdtWe4bAYcNmfVFzaiFVtH81tfMAWCtMh9", // Sats Vault cbBTC
+        ]
+      },
+      "staking": {
+        "tokenAccounts": [
+          "G9iBFqhbu3rPCtTEnHzZmn8UDqy3t5d7VLqbnU8faYdT", // Rush Vault RUSH
+          "7c3iepAJkw8MRF6Rm5LyxB1Vbkxgq4EAAkGy7LNQtFfV", // Staking treasury staked RUSH
+        ]
+      }
+    }
+  },
+  "tessera-v": {
+    "methodology": "TVL is the value of SPL and Token-2022 balances held in Tessera V vaults controlled by its Solana authority account.",
+    "solana": {
+      "owner": "8ekCy2jHHUbW2yeNGFWYJT9Hm9FW7SvZcZK66dSZCDiF"
+    }
+  },
+  "arcpad": {
+    // every launch opens a Uniswap V3 token/USDC pool (1% tier) and the LP NFT is locked forever in ArcFeeLocker
+    // https://arcpad.meme/docs#contracts
+    "methodology": "USDC held in the locked Uniswap V3 launch positions owned by the ArcPad fee locker",
+    "doublecounted": true, // already counted as uniswap v3 tvl
+    "start": "2026-09-03", // first launch position locked, block 19015290
+    "arc": {
+      "owners": ["0x69A615DD32B89fE40D87b2e3123baE4162f2d450"],
+      "resolveUniV3": true,
+      "uniV3WhitelistedTokens": [ADDRESSES.arc.USDC],
+    }
+  },
+  "popdex-bridge": {
+    "methodology": "TVL is the USDT held by the PopDEX cross-chain bridge contracts on Arbitrum and Morph",
+    "arbitrum": {
+      "owners": ["0x0B15D6cF5e843C88034f64664D7fE66E5F79C5f2"],
+      "tokens": [ADDRESSES.arbitrum.USDT]
+    },
+    "morph": {
+      "owners": ["0x71FB3a05d02B48d358E4DEB55D0D461Dcb7cF71d"],
+      "tokens": [ADDRESSES.morph.USDT0]
+    }
+  },
+  "neby-dex": {
+    // pools from the last good graph.api.neby.exchange response (subgraph host no longer resolves)
+    "sapphire": {
+      "ownerTokens": [
+        [["0x3cabbe76ea8b4e7a2c0a69812cbe671800379ec8", "0xed57966f1566de1a90042d07403021ea52ad4724"], "0x09eebb65a41cc45543e596ce1dc10d071265ad04"],
+        [["0x6665a6cae3f52959f0f653e3d04270d54e6f13d8", "0x8bc2b030b299964eefb5e1e0b36991352e56d2d3"], "0x2c47941cfdf58d2f9a9490d84fadecc284d63b0a"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0x97eec1c29f745dc7c267f90292aa663d997a601d"], "0x3a2976b76b9af12639878b87b4ccef2e951ca5aa"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0xa14167756d9f86aed12b472c29b257bbdd9974c2"], "0x419fe2b60f0ea02051b073b71f2326550d371f94"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0x932dd32885eee8dccdb8e0475cf2e9bfc8527f9d"], "0x6cdcf811073b358031239e3792aefcdd875498b0"],
+        [["0xa14167756d9f86aed12b472c29b257bbdd9974c2", "0xdd629e5241cbc5919847783e6c96b2de4754e438"], "0x85955d332de1ce53393f4dc6e3f0bb9d95436e56"],
+        [["0x2f301d3b045544a9d7ec3fa090cd78986f11f2e7", "0x3cabbe76ea8b4e7a2c0a69812cbe671800379ec8"], "0x9b62a385c488b5c088cb9ade548f18e3953d5581"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0xe4ea254e07c3403fc67ece108fb5eb039a246231"], "0xa0f83725a5a86e81992134ebdf6e7e4f2ff47886"],
+        [["0x932dd32885eee8dccdb8e0475cf2e9bfc8527f9d", "0x97eec1c29f745dc7c267f90292aa663d997a601d"], "0xb4f45dd65046aeeee0ec56df60074b5d1c89f067"],
+        [["0x8c4acd74ff4385f3b7911432fa6787aa14406f8b", "0x97eec1c29f745dc7c267f90292aa663d997a601d"], "0xbeb97bcda42c8de9e24fe7dfb0397dd4b069ddc3"],
+        [["0x3cabbe76ea8b4e7a2c0a69812cbe671800379ec8", "0x8bc2b030b299964eefb5e1e0b36991352e56d2d3"], "0xda6b7b88f5c659b08df37e6daf043d52b985e8ff"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0xb6dc6c8b71e88642cead3be1025565a9ee74d1c6"], "0xeafb04b5d4fb753c32dbb2ec32b3bf7cdc7f5144"],
+        [["0x3cabbe76ea8b4e7a2c0a69812cbe671800379ec8", "0xa14167756d9f86aed12b472c29b257bbdd9974c2"], "0xeb941037f8aa4ce8680666b8af62dd88b2227da2"],
+        [["0x8bc2b030b299964eefb5e1e0b36991352e56d2d3", "0x8c4acd74ff4385f3b7911432fa6787aa14406f8b"], "0xee91352a9aba9ae2ce677545ef138a9759e50629"],
+        [["0x3cabbe76ea8b4e7a2c0a69812cbe671800379ec8", "0xed57966f1566de1a90042d07403021ea52ad4724"], "0xf867baf89c435cea8d2938289924604bc95be3a2"],
+      ]
+    }
   },
 }

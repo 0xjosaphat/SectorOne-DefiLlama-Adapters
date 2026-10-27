@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-
+require("dotenv").config();
 const handleError = require('./utils/handleError')
 const INTERNAL_CACHE_FILE = 'tvl-adapter-repo/sdkInternalCache.json'
 
@@ -9,7 +9,6 @@ process.on('unhandledRejection', handleError)
 process.on('uncaughtException', handleError)
 
 const path = require("path");
-require("dotenv").config();
 const { ENV_KEYS } = require("./projects/helper/env");
 const { util: {
   blocks: { getBlocks },
@@ -130,7 +129,7 @@ function validateHallmarks(hallmark) {
   const moduleArg = process.argv[2].replace('/index.js', '').split('/').pop()
   // registry keys can be namespaced (e.g. `treasury/gmx`); preserve the full
   // key so a treasury entry isn't shadowed by a same-named protocol adapter.
-  const registryKey = process.argv[2].replace(/\.js$/, '').replace(/\/index$/, '').replace(/^projects\//, '')
+  const registryKey = path.relative(__dirname, passedFile).replace(/\.js$/, '').replace(/\/index$/, '').replace(/^projects\//, '')
 
   // throw error if module doesnt start with lowercase letters
   if (!/^[a-z]/.test(moduleArg) && !process.env.LLAMA_RUN_LOCAL) {
@@ -223,7 +222,7 @@ function validateHallmarks(hallmark) {
         try {
           await getTvl(unixTimestamp, ethBlock, chainBlocks, usdTvls, tokensBalances, usdTokenBalances, tvlFunction, storedKey,);
         } catch (e) {
-          failedKeys.push({ storedKey, error: e && e.message ? e.message : String(e) })
+          failedKeys.push({ storedKey, error: formatFailureError(e) })
           console.error(`Error pulling TVL for ${storedKey}:`, e)
           return;
         }
@@ -241,12 +240,16 @@ function validateHallmarks(hallmark) {
     })
   }).filter(p => p !== undefined && Array.isArray(p)).flat().filter(p => p !== undefined)
 
-  await util.runInPromisePool({
+  // print how many http requests (rpc per chain, coins, indexer...) the adapter made, to spot heavy adapters locally
+  const runTracked = sdk.callStats
+    ? (fn) => sdk.callStats.run({ application: 'tvl', type: 'test', name: moduleArg }, fn, { print: true, skipElastic: true })
+    : (fn) => fn()
+  await runTracked(() => util.runInPromisePool({
     items: tvlPromises,
     concurrency: 5,
     processor: async (p) => p(),
     permitFailure: false,
-  })
+  }))
   Object.entries(chainTvlsToAdd).map(([tvlType, storedKeys]) => {
     if (usdTvls[tvlType] === undefined) {
       usdTvls[tvlType] = storedKeys.reduce(
@@ -310,6 +313,14 @@ function validateHallmarks(hallmark) {
 })().catch(handleError);
 
 
+function formatFailureError(e) {
+  if (e && e.message) return e.message
+  if (e && typeof e === 'object') {
+    try { return JSON.stringify(e).slice(0, 500) } catch { return String(e) }
+  }
+  return String(e)
+}
+
 function checkExportKeys(module, filePath, chains) {
   let _filePath = filePath
   filePath = filePath.split(path.sep)
@@ -324,8 +335,10 @@ function checkExportKeys(module, filePath, chains) {
           || /v\d+\.js$/.test(filePath[1]) // matches .../projects/projectXYZ/v1.js
         )))
 
-  )
-    process.exit(0)
+  ) {
+    console.error(`Not an adapter path, nothing tested: ${_filePath} (expected projects/<adapter>/index.js)`)
+    process.exit(2)
+  }
 
   const blacklistedRootExportKeys = ['tvl', 'staking', 'pool2', 'borrowed', 'treasury', 'offers', 'vesting'];
   const rootexportKeys = Object.keys(module).filter(item => typeof module[item] !== 'object');
@@ -460,7 +473,7 @@ async function computeTVL(balances, timestamp) {
         return undefined;
       }
     })
-    .filter((item) => item !== undefined);
+    .filter((item) => item !== undefined)
 
   const unknownTokens = {}
   let tokenData = []
@@ -482,7 +495,7 @@ async function computeTVL(balances, timestamp) {
         if (queries.length > 6) {
           sdk.log(`Processed ${i}/${queryCount} queries, ${tokenData.length} responses received`)
           if (i < queryCount - 2) {
-            await sleep(5000) // avoid rate limiting
+            await sleep(100) // avoid rate limiting
           }
         }
       } catch (e) {

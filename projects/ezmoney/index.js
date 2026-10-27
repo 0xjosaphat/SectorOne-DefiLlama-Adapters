@@ -20,6 +20,10 @@ const config = {
         type: 'slipstream',
         nftAddress: '0x827922686190790b37229fd06084350e74485b72',
       },
+      '0x19C1D4Ffc9a3bc09d6682daA06b08f3500BC453c': { // Aerodrome Slipstream (factory 0xf8f2eB4940CFE7d13603DDDD87f123820Fc061Ef)
+        type: 'slipstream',
+        nftAddress: '0xe1f8cd9AC4e4A65F54f38a5CdAfCA44f6dD68b53',
+      },
     },
   },
   arbitrum: {
@@ -49,6 +53,16 @@ const config = {
       '0xc5cF6Bc5Db058B4330Ab3687BDaFc575f800CC0D': {
         type: 'uniV3',
         nftAddress: '0xead19ae861c29bbb2101e834922b2feee69b9091',
+      },
+    },
+  },
+  robinhood: {
+    clCore: '0xEc6A12eb5593F450fc238Dd269fCff3DE8166098',
+    wrapper: '0x6F81790Ebac25497be379Dc66143fb298663Ae11',
+    dexes: {
+      '0xbcAb6Cc4b2F1990F8e6e9f11C881a229D69CBb27': {
+        type: 'uniV3',
+        nftAddress: '0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3',
       },
     },
   },
@@ -89,5 +103,5 @@ Object.keys(config).forEach((chain) => {
   }
 })
 
-module.exports.methodology = 'TVL is the sum of token amounts in active EZManager CLCore concentrated-liquidity positions whose CLCore position owner is the EZWrapper (EZMoney) contract, across Base, Arbitrum, BSC, and Hyperliquid.'
+module.exports.methodology = 'TVL is the sum of token amounts in active EZManager CLCore concentrated-liquidity positions whose CLCore position owner is the EZWrapper (EZMoney) contract, across Base, Arbitrum, BSC, Hyperliquid, and Robinhood.'
 module.exports.doublecounted = true
